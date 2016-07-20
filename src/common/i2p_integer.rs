@@ -1,18 +1,32 @@
 use std::marker::PhantomData;
 use std::fmt;
+use std::convert::From;
+use std::ops::{Add, Sub, Mul, Div, Rem, Not, BitAnd, BitOr, BitXor};
+use std::ops::{Shl, Shr};
+use std::ops::{AddAssign, SubAssign, MulAssign, DivAssign, RemAssign};
+use std::ops::{BitAndAssign, BitOrAssign, BitXorAssign, ShlAssign, ShrAssign};
+use std::cmp::{PartialOrd, Ord, Ordering};
 
 
 pub const I2P_INTEGER_SIZE: usize = 8;
 
-trait I2pIntSize {}
+trait I2pIntSize: Clone + Copy + Eq + PartialEq {}
 
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 struct _1 {}
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 struct _2 {}
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 struct _3 {}
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 struct _4 {}
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 struct _5 {}
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 struct _6 {}
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 struct _7 {}
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 struct _8 {}
 
 impl I2pIntSize for _1 {}
@@ -23,44 +37,6 @@ impl I2pIntSize for _5 {}
 impl I2pIntSize for _6 {}
 impl I2pIntSize for _7 {}
 impl I2pIntSize for _8 {}
-
-
-// I2P Integer
-// Represents a variable sized integer from 1 to 8 bytes long.
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
-struct I2pInteger<I: I2pIntSize> {
-    data: u64,
-    __pd: PhantomData<I>,
-}
-
-impl<I> I2pInteger<I> where I: I2pIntSize + I2pIntMask {
-    pub fn new(data: u64) -> I2pInteger<I> {
-        let mask = <I as I2pIntMask>::mask();
-
-        I2pInteger {
-            data: data & mask,
-            __pd: PhantomData,
-        }
-    }
-
-    /// Converts a byte sequence into an I2pInteger, in network byte (big endian) order.
-    /// If a byte array is of length zero, then `from_bytes_be` returns zero. 
-    /// If a byte array is longer than the maximum number bytes for an I2pInteger, it return None.
-    pub fn from_bytes_be(bytes: &[u8]) -> Option<I2pInteger<I>> {
-        if bytes.len() >= I2P_INTEGER_SIZE {
-            return None;
-        }
-
-        let mask = <I as I2pIntMask>::mask();
-        let mut result: u64 = 0x00;
-        
-        for byte in bytes {
-            result = (result | *byte as u64) << 8;
-        }
-
-        Some(I2pInteger::new(result & mask))
-    }
-}
 
 trait I2pIntMask {
     fn mask() -> u64;
@@ -87,6 +63,44 @@ mask_impl!(_7, 0x00FF_FFFF_FFFF_FFFF);
 mask_impl!(_8, 0xFFFF_FFFF_FFFF_FFFF);
 
 
+// I2P Integer
+// Represents a variable sized integer from 1 to 8 bytes long.
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Default, Hash)]
+struct I2pInteger<I: I2pIntSize> {
+    data: u64,
+    _marker: PhantomData<I>,
+}
+
+impl<I> I2pInteger<I> where I: I2pIntSize + I2pIntMask {
+    pub fn new(data: u64) -> I2pInteger<I> {
+        let mask = <I as I2pIntMask>::mask();
+
+        I2pInteger {
+            data: data & mask,
+            _marker: PhantomData,
+        }
+    }
+
+    /// Converts a byte sequence into an I2pInteger, in network byte (big endian) order.
+    /// If a byte array is of length zero, then `from_bytes_be` returns zero. 
+    /// If a byte array is longer than the maximum number bytes for an I2pInteger, it return None.
+    pub fn from_bytes_be(bytes: &[u8]) -> Option<I2pInteger<I>> {
+        if bytes.len() > I2P_INTEGER_SIZE {
+            return None;
+        }
+
+        let mask = <I as I2pIntMask>::mask();
+        let mut result: u64 = 0x00;
+        
+        for byte in bytes {
+            result = (result | *byte as u64) << 8;
+        }
+
+        Some(I2pInteger::new(result & mask))
+    }
+}
+
+// Type synonyms for I2pInteger sizes.
 type I2pInt8  = I2pInteger<_1>;
 type I2pInt16 = I2pInteger<_2>;
 type I2pInt24 = I2pInteger<_3>;
@@ -96,8 +110,574 @@ type I2pInt48 = I2pInteger<_6>;
 type I2pInt56 = I2pInteger<_7>;
 type I2pInt64 = I2pInteger<_8>;
 
+
 impl<I> fmt::Display for I2pInteger<I> where I: I2pIntSize {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", self.data)
+    }
+}
+
+
+macro_rules! primitive_int_type_to_i2p_int_from_impl {
+    ( $ T : ty ) => {
+        impl<I> From<$T> for I2pInteger<I> where I: I2pIntSize + I2pIntMask {
+            fn from(val: $T) -> I2pInteger<I> {
+                let mask: u64 = <I as I2pIntMask>::mask();
+                let data: u64 = 0x00;
+
+                I2pInteger::<I>::new((data | val as u64) & mask)
+            }
+        }
+    }
+}
+
+primitive_int_type_to_i2p_int_from_impl!(u8);
+primitive_int_type_to_i2p_int_from_impl!(u16);
+primitive_int_type_to_i2p_int_from_impl!(u32);
+primitive_int_type_to_i2p_int_from_impl!(u64);
+primitive_int_type_to_i2p_int_from_impl!(usize);
+primitive_int_type_to_i2p_int_from_impl!(i8);
+primitive_int_type_to_i2p_int_from_impl!(i16);
+primitive_int_type_to_i2p_int_from_impl!(i32);
+primitive_int_type_to_i2p_int_from_impl!(i64);
+primitive_int_type_to_i2p_int_from_impl!(isize);
+
+
+impl<I> Add<I2pInteger<I>> for I2pInteger<I> where I: I2pIntSize + I2pIntMask {
+    type Output = I2pInteger<I>;
+
+    fn add(self, other: I2pInteger<I>) -> I2pInteger<I> {
+        I2pInteger::new(self.data + other.data)
+    }
+}
+
+impl<'a, I> Add<I2pInteger<I>> for &'a I2pInteger<I> where I: I2pIntSize + I2pIntMask {
+    type Output = I2pInteger<I>;
+
+    fn add(self, other: I2pInteger<I>) -> I2pInteger<I> {
+        I2pInteger::new(self.data + other.data)
+    }
+}
+
+impl<'a, I> Add<&'a I2pInteger<I>> for I2pInteger<I> where I: I2pIntSize + I2pIntMask {
+    type Output = I2pInteger<I>;
+
+    fn add(self, other: &'a I2pInteger<I>) -> I2pInteger<I> {
+        I2pInteger::new(self.data + other.data)
+    }
+}
+
+impl<'a, 'b, I> Add<&'a I2pInteger<I>> for &'b I2pInteger<I> where I: I2pIntSize + I2pIntMask {
+    type Output = I2pInteger<I>;
+
+    fn add(self, other: &'a I2pInteger<I>) -> I2pInteger<I> {
+        I2pInteger::new(self.data + other.data)
+    }
+}
+
+impl<I> Sub<I2pInteger<I>> for I2pInteger<I> where I: I2pIntSize + I2pIntMask {
+    type Output = I2pInteger<I>;
+
+    fn sub(self, other: I2pInteger<I>) -> I2pInteger<I> {
+        I2pInteger::new(self.data - other.data)
+    }
+}
+
+impl<'a, I> Sub<I2pInteger<I>> for &'a I2pInteger<I> where I: I2pIntSize + I2pIntMask {
+    type Output = I2pInteger<I>;
+
+    fn sub(self, other: I2pInteger<I>) -> I2pInteger<I> {
+        I2pInteger::new(self.data - other.data)
+    }
+}
+
+impl<'a, I> Sub<&'a I2pInteger<I>> for I2pInteger<I> where I: I2pIntSize + I2pIntMask {
+    type Output = I2pInteger<I>;
+
+    fn sub(self, other: &'a I2pInteger<I>) -> I2pInteger<I> {
+        I2pInteger::new(self.data - other.data)
+    }
+}
+
+impl<'a, 'b, I> Sub<&'a I2pInteger<I>> for &'b I2pInteger<I> where I: I2pIntSize + I2pIntMask {
+    type Output = I2pInteger<I>;
+
+    fn sub(self, other: &'a I2pInteger<I>) -> I2pInteger<I> {
+        I2pInteger::new(self.data - other.data)
+    }
+}
+
+impl<I> Mul<I2pInteger<I>> for I2pInteger<I> where I: I2pIntSize + I2pIntMask {
+    type Output = I2pInteger<I>;
+
+    fn mul(self, other: I2pInteger<I>) -> I2pInteger<I> {
+        I2pInteger::new(self.data * other.data)
+    }
+}
+
+impl<'a, I> Mul<I2pInteger<I>> for &'a I2pInteger<I> where I: I2pIntSize + I2pIntMask {
+    type Output = I2pInteger<I>;
+
+    fn mul(self, other: I2pInteger<I>) -> I2pInteger<I> {
+        I2pInteger::new(self.data * other.data)
+    }
+}
+
+impl<'a, I> Mul<&'a I2pInteger<I>> for I2pInteger<I> where I: I2pIntSize + I2pIntMask {
+    type Output = I2pInteger<I>;
+
+    fn mul(self, other: &'a I2pInteger<I>) -> I2pInteger<I> {
+        I2pInteger::new(self.data * other.data)
+    }
+}
+
+impl<'a, 'b, I> Mul<&'a I2pInteger<I>> for &'b I2pInteger<I> where I: I2pIntSize + I2pIntMask {
+    type Output = I2pInteger<I>;
+
+    fn mul(self, other: &'a I2pInteger<I>) -> I2pInteger<I> {
+        I2pInteger::new(self.data * other.data)
+    }
+}
+
+impl<I> Div<I2pInteger<I>> for I2pInteger<I> where I: I2pIntSize + I2pIntMask {
+    type Output = I2pInteger<I>;
+
+    fn div(self, other: I2pInteger<I>) -> I2pInteger<I> {
+        I2pInteger::new(self.data / other.data)
+    }
+}
+
+impl<'a, I> Div<I2pInteger<I>> for &'a I2pInteger<I> where I: I2pIntSize + I2pIntMask {
+    type Output = I2pInteger<I>;
+
+    fn div(self, other: I2pInteger<I>) -> I2pInteger<I> {
+        I2pInteger::new(self.data / other.data)
+    }
+}
+
+impl<'a, I> Div<&'a I2pInteger<I>> for I2pInteger<I> where I: I2pIntSize + I2pIntMask {
+    type Output = I2pInteger<I>;
+
+    fn div(self, other: &'a I2pInteger<I>) -> I2pInteger<I> {
+        I2pInteger::new(self.data / other.data)
+    }
+}
+
+impl<'a, 'b, I> Div<&'a I2pInteger<I>> for &'b I2pInteger<I> where I: I2pIntSize + I2pIntMask {
+    type Output = I2pInteger<I>;
+
+    fn div(self, other: &'a I2pInteger<I>) -> I2pInteger<I> {
+        I2pInteger::new(self.data / other.data)
+    }
+}
+
+impl<I> Rem<I2pInteger<I>> for I2pInteger<I> where I: I2pIntSize + I2pIntMask {
+    type Output = I2pInteger<I>;
+
+    fn rem(self, other: I2pInteger<I>) -> I2pInteger<I> {
+        I2pInteger::new(self.data % other.data)
+    }
+}
+
+impl<'a, I> Rem<I2pInteger<I>> for &'a I2pInteger<I> where I: I2pIntSize + I2pIntMask {
+    type Output = I2pInteger<I>;
+
+    fn rem(self, other: I2pInteger<I>) -> I2pInteger<I> {
+        I2pInteger::new(self.data % other.data)
+    }
+}
+
+impl<'a, I> Rem<&'a I2pInteger<I>> for I2pInteger<I> where I: I2pIntSize + I2pIntMask {
+    type Output = I2pInteger<I>;
+
+    fn rem(self, other: &'a I2pInteger<I>) -> I2pInteger<I> {
+        I2pInteger::new(self.data % other.data)
+    }
+}
+
+impl<'a, 'b, I> Rem<&'a I2pInteger<I>> for &'b I2pInteger<I> where I: I2pIntSize + I2pIntMask {
+    type Output = I2pInteger<I>;
+
+    fn rem(self, other: &'a I2pInteger<I>) -> I2pInteger<I> {
+        I2pInteger::new(self.data % other.data)
+    }
+}
+
+impl<I> Not for I2pInteger<I> where I: I2pIntSize + I2pIntMask {
+    type Output = I2pInteger<I>;
+
+    fn not(self) -> I2pInteger<I> {
+        I2pInteger::new(!self.data)
+    }
+}
+
+impl<'a, I> Not for &'a I2pInteger<I> where I: I2pIntSize + I2pIntMask {
+    type Output = I2pInteger<I>;
+
+    fn not(self) -> I2pInteger<I> {
+        I2pInteger::new(!self.data)       
+    }    
+}
+
+impl<I> BitAnd<I2pInteger<I>> for I2pInteger<I> where I: I2pIntSize + I2pIntMask {
+    type Output = I2pInteger<I>;
+
+    fn bitand(self, other: I2pInteger<I>) -> I2pInteger<I> {
+        I2pInteger::new(self.data & other.data)
+    }
+}
+
+impl<'a, I> BitAnd<I2pInteger<I>> for &'a I2pInteger<I> where I: I2pIntSize + I2pIntMask {
+    type Output = I2pInteger<I>;
+
+    fn bitand(self, other: I2pInteger<I>) -> I2pInteger<I> {
+        I2pInteger::new(self.data & other.data)
+    }
+}
+
+impl<'a, I> BitAnd<&'a I2pInteger<I>> for I2pInteger<I> where I: I2pIntSize + I2pIntMask {
+    type Output = I2pInteger<I>;
+
+    fn bitand(self, other: &'a I2pInteger<I>) -> I2pInteger<I> {
+        I2pInteger::new(self.data & other.data)
+    }
+}
+
+impl<'a, 'b, I> BitAnd<&'a I2pInteger<I>> for &'b I2pInteger<I> where I: I2pIntSize + I2pIntMask {
+    type Output = I2pInteger<I>;
+
+    fn bitand(self, other: &'a I2pInteger<I>) -> I2pInteger<I> {
+        I2pInteger::new(self.data & other.data)
+    }
+}
+
+impl<I> BitOr<I2pInteger<I>> for I2pInteger<I> where I: I2pIntSize + I2pIntMask {
+    type Output = I2pInteger<I>;
+
+    fn bitor(self, other: I2pInteger<I>) -> I2pInteger<I> {
+        I2pInteger::new(self.data | other.data)
+    }
+}
+
+impl<'a, I> BitOr<I2pInteger<I>> for &'a I2pInteger<I> where I: I2pIntSize + I2pIntMask {
+    type Output = I2pInteger<I>;
+
+    fn bitor(self, other: I2pInteger<I>) -> I2pInteger<I> {
+        I2pInteger::new(self.data | other.data)
+    }
+}
+
+impl<'a, I> BitOr<&'a I2pInteger<I>> for I2pInteger<I> where I: I2pIntSize + I2pIntMask {
+    type Output = I2pInteger<I>;
+
+    fn bitor(self, other: &'a I2pInteger<I>) -> I2pInteger<I> {
+        I2pInteger::new(self.data | other.data)
+    }
+}
+
+impl<'a, 'b, I> BitOr<&'a I2pInteger<I>> for &'b I2pInteger<I> where I: I2pIntSize + I2pIntMask {
+    type Output = I2pInteger<I>;
+
+    fn bitor(self, other: &'a I2pInteger<I>) -> I2pInteger<I> {
+        I2pInteger::new(self.data | other.data)
+    }
+}
+
+impl<I> BitXor<I2pInteger<I>> for I2pInteger<I> where I: I2pIntSize + I2pIntMask {
+    type Output = I2pInteger<I>;
+
+    fn bitxor(self, other: I2pInteger<I>) -> I2pInteger<I> {
+        I2pInteger::new(self.data ^ other.data)
+    }
+}
+
+impl<'a, I> BitXor<I2pInteger<I>> for &'a I2pInteger<I> where I: I2pIntSize + I2pIntMask {
+    type Output = I2pInteger<I>;
+
+    fn bitxor(self, other: I2pInteger<I>) -> I2pInteger<I> {
+        I2pInteger::new(self.data ^ other.data)
+    }
+}
+
+impl<'a, I> BitXor<&'a I2pInteger<I>> for I2pInteger<I> where I: I2pIntSize + I2pIntMask {
+    type Output = I2pInteger<I>;
+
+    fn bitxor(self, other: &'a I2pInteger<I>) -> I2pInteger<I> {
+        I2pInteger::new(self.data ^ other.data)
+    }
+}
+
+impl<'a, 'b, I> BitXor<&'a I2pInteger<I>> for &'b I2pInteger<I> where I: I2pIntSize + I2pIntMask {
+    type Output = I2pInteger<I>;
+
+    fn bitxor(self, other: &'a I2pInteger<I>) -> I2pInteger<I> {
+        I2pInteger::new(self.data ^ other.data)
+    }
+}
+
+macro_rules! shift_left_impl {
+    ( $ T : ty ) => {
+        impl<I> Shl<$T> for I2pInteger<I> where I: I2pIntSize + I2pIntMask {
+            type Output = I2pInteger<I>;
+
+            fn shl(self, other: $T) -> I2pInteger<I> {
+                I2pInteger::new(self.data << other)
+            }
+        }
+
+        impl<'a, I> Shl<$T> for &'a I2pInteger<I> where I: I2pIntSize + I2pIntMask {
+            type Output = I2pInteger<I>;
+
+            fn shl(self, other: $T) -> I2pInteger<I> {
+                I2pInteger::new(self.data << other)
+            }
+        }
+
+        impl<'a, I> Shl<&'a $T> for I2pInteger<I> where I: I2pIntSize + I2pIntMask {
+            type Output = I2pInteger<I>;
+            
+            fn shl(self, other: &'a $T) -> I2pInteger<I> {
+                I2pInteger::new(self.data << other)
+            }
+        }
+
+        impl<'a, 'b, I> Shl<&'a $T> for &'b I2pInteger<I> where I: I2pIntSize + I2pIntMask {
+            type Output = I2pInteger<I>;
+
+            fn shl(self, other: &'a $T) -> I2pInteger<I> {
+                I2pInteger::new(self.data << other)
+            }
+        }
+    }
+}
+
+shift_left_impl!(u8);
+shift_left_impl!(u16);
+shift_left_impl!(u32);
+shift_left_impl!(u64);
+shift_left_impl!(usize);
+shift_left_impl!(i8);
+shift_left_impl!(i16);
+shift_left_impl!(i32);
+shift_left_impl!(i64);
+shift_left_impl!(isize);
+
+
+macro_rules! shift_right_impl {
+    ( $ T : ty ) => {
+        impl<I> Shr<$T> for I2pInteger<I> where I: I2pIntSize + I2pIntMask {
+            type Output = I2pInteger<I>;
+
+            fn shr(self, other: $T) -> I2pInteger<I> {
+                I2pInteger::new(self.data >> other)
+            }
+        }
+
+        impl<'a, I> Shr<$T> for &'a I2pInteger<I> where I: I2pIntSize + I2pIntMask {
+            type Output = I2pInteger<I>;
+
+            fn shr(self, other: $T) -> I2pInteger<I> {
+                I2pInteger::new(self.data >> other)
+            }
+        }
+
+        impl<'a, I> Shr<&'a $T> for I2pInteger<I> where I: I2pIntSize + I2pIntMask {
+            type Output = I2pInteger<I>;
+            
+            fn shr(self, other: &'a $T) -> I2pInteger<I> {
+                I2pInteger::new(self.data >> other)
+            }
+        }
+
+        impl<'a, 'b, I> Shr<&'a $T> for &'b I2pInteger<I> where I: I2pIntSize + I2pIntMask {
+            type Output = I2pInteger<I>;
+
+            fn shr(self, other: &'a $T) -> I2pInteger<I> {
+                I2pInteger::new(self.data >> other)
+            }
+        }
+    }
+}
+
+shift_right_impl!(u8);
+shift_right_impl!(u16);
+shift_right_impl!(u32);
+shift_right_impl!(u64);
+shift_right_impl!(usize);
+shift_right_impl!(i8);
+shift_right_impl!(i16);
+shift_right_impl!(i32);
+shift_right_impl!(i64);
+shift_right_impl!(isize);
+
+
+impl<I> AddAssign<I2pInteger<I>> for I2pInteger<I>  where I: I2pIntSize + I2pIntMask {
+    fn add_assign(&mut self, other: I2pInteger<I>) {
+        *self = self.clone() + other;
+    }
+}
+
+impl<I> SubAssign<I2pInteger<I>> for I2pInteger<I>  where I: I2pIntSize + I2pIntMask {
+    fn sub_assign(&mut self, other: I2pInteger<I>) {
+        *self = self.clone() - other;
+    }
+}
+
+impl<I> MulAssign<I2pInteger<I>> for I2pInteger<I>  where I: I2pIntSize + I2pIntMask {
+    fn mul_assign(&mut self, other: I2pInteger<I>) {
+        *self = self.clone() * other;
+    }    
+}
+
+impl<I> DivAssign<I2pInteger<I>> for I2pInteger<I>  where I: I2pIntSize + I2pIntMask {
+    fn div_assign(&mut self, other: I2pInteger<I>) {
+        *self = self.clone() % other;
+    }    
+}
+
+impl<I> RemAssign<I2pInteger<I>> for I2pInteger<I>  where I: I2pIntSize + I2pIntMask {
+    fn rem_assign(&mut self, other: I2pInteger<I>) {
+        *self = self.clone() % other;
+    }    
+}
+
+impl<I> BitAndAssign<I2pInteger<I>> for I2pInteger<I>  where I: I2pIntSize + I2pIntMask {
+    fn bitand_assign(&mut self, other: I2pInteger<I>) {
+        *self = self.clone() & other;
+    }    
+}
+
+impl<I> BitOrAssign<I2pInteger<I>> for I2pInteger<I>  where I: I2pIntSize + I2pIntMask {
+    fn bitor_assign(&mut self, other: I2pInteger<I>) {
+        *self = self.clone() | other;
+    }    
+}
+
+impl<I> BitXorAssign<I2pInteger<I>> for I2pInteger<I>  where I: I2pIntSize + I2pIntMask {
+    fn bitxor_assign(&mut self, other: I2pInteger<I>) {
+        *self = self.clone() ^ other;
+    }    
+}
+
+
+macro_rules! shl_assign_impl {
+    ($ T : ty ) => {
+        impl<I> ShlAssign<$T> for I2pInteger<I> where I: I2pIntSize + I2pIntMask {
+            fn shl_assign(&mut self, other: $T) {
+                *self = self.clone() << other;
+            }
+        }
+    }
+}
+
+macro_rules! shr_assign_impl {
+    ($ T : ty ) => {
+        impl<I> ShrAssign<$T> for I2pInteger<I> where I: I2pIntSize + I2pIntMask {
+            fn shr_assign(&mut self, other: $T) {
+                *self = self.clone() >> other;
+            }
+        }
+    }
+}
+
+macro_rules! shift_assign_impl {
+    ( $ T : ty ) => {
+        shl_assign_impl!($T);
+        shr_assign_impl!($T);
+    }
+}
+
+shift_assign_impl!(u8);
+shift_assign_impl!(u16);
+shift_assign_impl!(u32);
+shift_assign_impl!(u64);
+shift_assign_impl!(usize);
+shift_assign_impl!(i8);
+shift_assign_impl!(i16);
+shift_assign_impl!(i32);
+shift_assign_impl!(i64);
+shift_assign_impl!(isize);
+
+
+impl<I> PartialOrd<I2pInteger<I>> for I2pInteger<I> where I: I2pIntSize + I2pIntMask {
+    fn partial_cmp(&self, other: &I2pInteger<I>) -> Option<Ordering> {
+        self.data.partial_cmp(&other.data)
+    }
+}
+
+impl<I> Ord for I2pInteger<I> where I: I2pIntSize + I2pIntMask {
+    fn cmp(&self, other: &I2pInteger<I>) -> Ordering {
+        self.data.cmp(&other.data)
+    }
+}
+
+impl<I> fmt::Binary for I2pInteger<I> where I: I2pIntSize + I2pIntMask {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let val = self.data;
+
+        // Delegate to underlying u64's implmentation
+        write!(f, "{:b}", val) 
+    }
+}
+
+impl<I> fmt::Octal for I2pInteger<I> where I: I2pIntSize + I2pIntMask {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let val = self.data;
+
+        // Delegate to underlying u64's implmentation
+        write!(f, "{:b}", val)        
+    }
+}
+
+impl<I> fmt::LowerHex for I2pInteger<I> where I: I2pIntSize + I2pIntMask {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let val = self.data;  
+
+        // Delegate to underlying u64's implmentation
+        write!(f, "{:b}", val)       
+    }
+}
+
+impl<I> fmt::UpperHex for I2pInteger<I> where I: I2pIntSize + I2pIntMask {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let val = self.data;  
+
+        // Delegate to underlying u64's implmentation
+        write!(f, "{:b}", val)       
+    }
+}
+
+
+#[cfg(test)]
+mod tests {
+    use super::{I2pInt64, I2pInt16, I2pInt24};
+
+    #[test]
+    fn test_from_bytes_be_should_return_zero_on_empty_slice() {
+        let vec = vec![];
+
+        let result: I2pInt64 = I2pInt64::from_bytes_be(vec.as_ref()).unwrap();
+
+        assert_eq!(result, I2pInt64::from(0));
+    }
+
+    #[test]
+    fn test_conversion_should_truncate_higher_order_bits() {
+        let val: u64         = 0x1_FFFF_FFFF;
+        let result: I2pInt16 = I2pInt16::from(val);
+        let mask: u64        = 0xFFFF_FFFF;
+        // The higher-order bits should be getting truncated to fit.
+        let expected         = I2pInt16::from(val & mask);
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn test_arithmetic_overflow() {
+        let val: u64 = 0xFFFF_FFFF_FFFF + 1;
+        let result: I2pInt24 = I2pInt24::from(val);
+        let expected: I2pInt24 = I2pInt24::from(0);
+
+        assert_eq!(result, expected); 
     }
 }
