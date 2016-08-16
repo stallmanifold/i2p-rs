@@ -101,6 +101,22 @@ impl<I> I2pInteger<I> where I: I2pIntSize + I2pIntMask {
         Some(I2pInteger::new(result & mask))
     }
 
+    pub fn to_bytes_be(&self) -> Vec<u8> {
+        let mut bytes = Vec::new();
+        let mut data  = self.data;
+        let mask = 0xFF;
+
+        while data > 0 {
+            let byte = (data & mask) as u8;
+            data >>= 8;
+            bytes.push(byte);
+        }
+
+        bytes.reverse();
+
+        bytes
+    }
+
     pub fn to_u64(&self) -> u64 {
         self.data
     }
@@ -876,5 +892,13 @@ mod tests {
         let expected: I2pInt24 = I2pInt24::from(0);
 
         assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn test_bytes_should_be_reversible() {
+        let value = I2pInt64::new(0x0102030405060708);
+        let bytes = value.to_bytes_be();
+        let result = I2pInt64::from_bytes_be(bytes.as_slice()).unwrap();
+        assert_eq!(value, result);
     }
 }
