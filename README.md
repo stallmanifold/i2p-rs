@@ -1,4 +1,4 @@
-### I2P Protocol
+# Rust I2P Protocol
 This repository is a pure Rust implementation of the I2P protocol stack.
 
 ### Status
