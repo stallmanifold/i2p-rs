@@ -10,24 +10,24 @@ use std::cmp::{PartialOrd, Ord, Ordering};
 
 pub const I2P_INTEGER_SIZE: usize = 8;
 
-trait I2pIntSize: Clone + Copy + Eq + PartialEq {}
+pub trait I2pIntSize: Clone + Copy + Eq + PartialEq {}
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-struct _1 {}
+pub struct _1 {}
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-struct _2 {}
+pub struct _2 {}
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-struct _3 {}
+pub struct _3 {}
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-struct _4 {}
+pub struct _4 {}
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-struct _5 {}
+pub struct _5 {}
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-struct _6 {}
+pub struct _6 {}
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-struct _7 {}
+pub struct _7 {}
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-struct _8 {}
+pub struct _8 {}
 
 impl I2pIntSize for _1 {}
 impl I2pIntSize for _2 {}
@@ -38,7 +38,7 @@ impl I2pIntSize for _6 {}
 impl I2pIntSize for _7 {}
 impl I2pIntSize for _8 {}
 
-trait I2pIntMask {
+pub trait I2pIntMask {
     fn mask() -> u64;
 }
 
@@ -63,10 +63,11 @@ mask_impl!(_7, 0x00FF_FFFF_FFFF_FFFF);
 mask_impl!(_8, 0xFFFF_FFFF_FFFF_FFFF);
 
 
-// I2P Integer
-// Represents a variable sized integer from 1 to 8 bytes long.
+/// I2P Integer
+/// Represents a variable sized integer from 1 to 8 bytes long in
+/// network (big endian) byte order.
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Default, Hash)]
-struct I2pInteger<I: I2pIntSize> {
+pub struct I2pInteger<I: I2pIntSize> {
     data: u64,
     _marker: PhantomData<I>,
 }
@@ -82,7 +83,7 @@ impl<I> I2pInteger<I> where I: I2pIntSize + I2pIntMask {
     }
 
     /// Converts a byte sequence into an I2pInteger, in network byte (big endian) order.
-    /// If a byte array is of length zero, then `from_bytes_be` returns zero. 
+    /// If a byte array is of length zero, then `from_bytes_be` returns zero.
     /// If a byte array is longer than the maximum number bytes for an I2pInteger, it return None.
     pub fn from_bytes_be(bytes: &[u8]) -> Option<I2pInteger<I>> {
         if bytes.len() > I2P_INTEGER_SIZE {
@@ -91,24 +92,28 @@ impl<I> I2pInteger<I> where I: I2pIntSize + I2pIntMask {
 
         let mask = <I as I2pIntMask>::mask();
         let mut result: u64 = 0x00;
-        
+
         for byte in bytes {
             result = (result | *byte as u64) << 8;
         }
 
         Some(I2pInteger::new(result & mask))
     }
+
+    pub fn to_u64(&self) -> u64 {
+        self.data
+    }
 }
 
 // Type synonyms for I2pInteger sizes.
-type I2pInt8  = I2pInteger<_1>;
-type I2pInt16 = I2pInteger<_2>;
-type I2pInt24 = I2pInteger<_3>;
-type I2pInt32 = I2pInteger<_4>;
-type I2pInt40 = I2pInteger<_5>;
-type I2pInt48 = I2pInteger<_6>;
-type I2pInt56 = I2pInteger<_7>;
-type I2pInt64 = I2pInteger<_8>;
+pub type I2pInt8  = I2pInteger<_1>;
+pub type I2pInt16 = I2pInteger<_2>;
+pub type I2pInt24 = I2pInteger<_3>;
+pub type I2pInt32 = I2pInteger<_4>;
+pub type I2pInt40 = I2pInteger<_5>;
+pub type I2pInt48 = I2pInteger<_6>;
+pub type I2pInt56 = I2pInteger<_7>;
+pub type I2pInt64 = I2pInteger<_8>;
 
 
 impl<I> fmt::Display for I2pInteger<I> where I: I2pIntSize {
@@ -315,8 +320,8 @@ impl<'a, I> Not for &'a I2pInteger<I> where I: I2pIntSize + I2pIntMask {
     type Output = I2pInteger<I>;
 
     fn not(self) -> I2pInteger<I> {
-        I2pInteger::new(!self.data)       
-    }    
+        I2pInteger::new(!self.data)
+    }
 }
 
 impl<I> BitAnd<I2pInteger<I>> for I2pInteger<I> where I: I2pIntSize + I2pIntMask {
@@ -435,7 +440,7 @@ macro_rules! shift_left_impl {
 
         impl<'a, I> Shl<&'a $T> for I2pInteger<I> where I: I2pIntSize + I2pIntMask {
             type Output = I2pInteger<I>;
-            
+
             fn shl(self, other: &'a $T) -> I2pInteger<I> {
                 I2pInteger::new(self.data << other)
             }
@@ -483,7 +488,7 @@ macro_rules! shift_right_impl {
 
         impl<'a, I> Shr<&'a $T> for I2pInteger<I> where I: I2pIntSize + I2pIntMask {
             type Output = I2pInteger<I>;
-            
+
             fn shr(self, other: &'a $T) -> I2pInteger<I> {
                 I2pInteger::new(self.data >> other)
             }
@@ -526,37 +531,37 @@ impl<I> SubAssign<I2pInteger<I>> for I2pInteger<I>  where I: I2pIntSize + I2pInt
 impl<I> MulAssign<I2pInteger<I>> for I2pInteger<I>  where I: I2pIntSize + I2pIntMask {
     fn mul_assign(&mut self, other: I2pInteger<I>) {
         *self = self.clone() * other;
-    }    
+    }
 }
 
 impl<I> DivAssign<I2pInteger<I>> for I2pInteger<I>  where I: I2pIntSize + I2pIntMask {
     fn div_assign(&mut self, other: I2pInteger<I>) {
         *self = self.clone() % other;
-    }    
+    }
 }
 
 impl<I> RemAssign<I2pInteger<I>> for I2pInteger<I>  where I: I2pIntSize + I2pIntMask {
     fn rem_assign(&mut self, other: I2pInteger<I>) {
         *self = self.clone() % other;
-    }    
+    }
 }
 
 impl<I> BitAndAssign<I2pInteger<I>> for I2pInteger<I>  where I: I2pIntSize + I2pIntMask {
     fn bitand_assign(&mut self, other: I2pInteger<I>) {
         *self = self.clone() & other;
-    }    
+    }
 }
 
 impl<I> BitOrAssign<I2pInteger<I>> for I2pInteger<I>  where I: I2pIntSize + I2pIntMask {
     fn bitor_assign(&mut self, other: I2pInteger<I>) {
         *self = self.clone() | other;
-    }    
+    }
 }
 
 impl<I> BitXorAssign<I2pInteger<I>> for I2pInteger<I>  where I: I2pIntSize + I2pIntMask {
     fn bitxor_assign(&mut self, other: I2pInteger<I>) {
         *self = self.clone() ^ other;
-    }    
+    }
 }
 
 
@@ -616,7 +621,7 @@ impl<I> fmt::Binary for I2pInteger<I> where I: I2pIntSize + I2pIntMask {
         let val = self.data;
 
         // Delegate to underlying u64's implmentation
-        write!(f, "{:b}", val) 
+        write!(f, "{:b}", val)
     }
 }
 
@@ -625,25 +630,25 @@ impl<I> fmt::Octal for I2pInteger<I> where I: I2pIntSize + I2pIntMask {
         let val = self.data;
 
         // Delegate to underlying u64's implmentation
-        write!(f, "{:b}", val)        
+        write!(f, "{:b}", val)
     }
 }
 
 impl<I> fmt::LowerHex for I2pInteger<I> where I: I2pIntSize + I2pIntMask {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let val = self.data;  
+        let val = self.data;
 
         // Delegate to underlying u64's implmentation
-        write!(f, "{:b}", val)       
+        write!(f, "{:b}", val)
     }
 }
 
 impl<I> fmt::UpperHex for I2pInteger<I> where I: I2pIntSize + I2pIntMask {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let val = self.data;  
+        let val = self.data;
 
         // Delegate to underlying u64's implmentation
-        write!(f, "{:b}", val)       
+        write!(f, "{:b}", val)
     }
 }
 
@@ -678,6 +683,6 @@ mod tests {
         let result: I2pInt24 = I2pInt24::from(val);
         let expected: I2pInt24 = I2pInt24::from(0);
 
-        assert_eq!(result, expected); 
+        assert_eq!(result, expected);
     }
 }
