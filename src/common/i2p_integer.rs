@@ -84,7 +84,8 @@ impl<I> I2pInteger<I> where I: I2pIntSize + I2pIntMask {
 
     /// Converts a byte sequence into an I2pInteger, in network byte (big endian) order.
     /// If a byte array is of length zero, then `from_bytes_be` returns zero.
-    /// If a byte array is longer than the maximum number bytes for an I2pInteger, it return None.
+    /// If a byte array is longer than the maximum number bytes for an I2pInteger,
+    /// it return None.
     pub fn from_bytes_be(bytes: &[u8]) -> Option<I2pInteger<I>> {
         if bytes.len() > I2P_INTEGER_SIZE {
             return None;
@@ -656,6 +657,197 @@ impl<I> fmt::UpperHex for I2pInteger<I> where I: I2pIntSize + I2pIntMask {
 #[cfg(test)]
 mod tests {
     use super::{I2pInt64, I2pInt16, I2pInt24};
+
+
+    struct TestCase {
+        arg1: I2pInt64,
+        arg2: I2pInt64,
+        result: I2pInt64
+    }
+
+    struct Test {
+        data: Vec<TestCase>
+    }
+
+    fn i2p_integer_addition_test_cases() -> Test {
+        Test {
+            data: vec![
+                TestCase {
+                    arg1:   I2pInt64::new(7476217),
+                    arg2:   I2pInt64::new(225026),
+                    result: I2pInt64::new(7701243)
+                },
+                TestCase {
+                    arg1:   I2pInt64::new(8959170),
+                    arg2:   I2pInt64::new(3654202),
+                    result: I2pInt64::new(12613372)
+                },
+                TestCase {
+                    arg1:   I2pInt64::new(4615797),
+                    arg2:   I2pInt64::new(5679303),
+                    result: I2pInt64::new(10295100)
+                },
+                TestCase {
+                    arg1:   I2pInt64::new(7303216),
+                    arg2:   I2pInt64::new(9510201),
+                    result: I2pInt64::new(16813417)
+                }
+            ]
+        }
+    }
+
+    fn i2p_integer_multiplication_test_cases() -> Test {
+        Test {
+            data: vec![
+                TestCase {
+                    arg1:   I2pInt64::new(7476217),
+                    arg2:   I2pInt64::new(225026),
+                    result: I2pInt64::new(1682343206642)
+                },
+                TestCase {
+                    arg1:   I2pInt64::new(8959170),
+                    arg2:   I2pInt64::new(3654202),
+                    result: I2pInt64::new(32738616932340)
+                },
+                TestCase {
+                    arg1:   I2pInt64::new(4615797),
+                    arg2:   I2pInt64::new(5679303),
+                    result: I2pInt64::new(26214509749491)
+                },
+                TestCase {
+                    arg1:   I2pInt64::new(7303216),
+                    arg2:   I2pInt64::new(9510201),
+                    result: I2pInt64::new(69455052106416)
+                }
+            ]
+        }
+    }
+
+    fn i2p_integer_subtraction_test_cases() -> Test {
+        Test {
+            data: vec![
+                TestCase {
+                    arg1:   I2pInt64::new(7476217),
+                    arg2:   I2pInt64::new(225026),
+                    result: I2pInt64::new(7251191)
+                },
+                TestCase {
+                    arg1:   I2pInt64::new(8959170),
+                    arg2:   I2pInt64::new(3654202),
+                    result: I2pInt64::new(5304968)
+                },
+                TestCase {
+                    arg1:   I2pInt64::new(5679303),
+                    arg2:   I2pInt64::new(4615797),
+                    result: I2pInt64::new(1063506)
+                },
+                TestCase {
+                    arg1:   I2pInt64::new(9510201),
+                    arg2:   I2pInt64::new(7303216),
+                    result: I2pInt64::new(2206985)
+                }
+            ]
+        }
+    }
+
+    fn i2p_integer_division_test_cases() -> Test {
+        Test {
+            data: vec![
+                TestCase {
+                    arg1:   I2pInt64::new(7476217),
+                    arg2:   I2pInt64::new(225026),
+                    result: I2pInt64::new(33)
+                },
+                TestCase {
+                    arg1:   I2pInt64::new(8959170),
+                    arg2:   I2pInt64::new(36542),
+                    result: I2pInt64::new(245)
+                },
+                TestCase {
+                    arg1:   I2pInt64::new(5679303),
+                    arg2:   I2pInt64::new(4615),
+                    result: I2pInt64::new(1230)
+                },
+                TestCase {
+                    arg1:   I2pInt64::new(9510201),
+                    arg2:   I2pInt64::new(73032),
+                    result: I2pInt64::new(130)
+                }
+            ]
+        }
+    }
+
+    fn i2p_integer_remainder_test_cases() -> Test {
+        Test {
+            data: vec![
+                TestCase {
+                    arg1:   I2pInt64::new(7476217),
+                    arg2:   I2pInt64::new(225026),
+                    result: I2pInt64::new(50359)
+                },
+                TestCase {
+                    arg1:   I2pInt64::new(8959170),
+                    arg2:   I2pInt64::new(36542),
+                    result: I2pInt64::new(6380)
+                },
+                TestCase {
+                    arg1:   I2pInt64::new(5679303),
+                    arg2:   I2pInt64::new(4615),
+                    result: I2pInt64::new(2853)
+                },
+                TestCase {
+                    arg1:   I2pInt64::new(9510201),
+                    arg2:   I2pInt64::new(73032),
+                    result: I2pInt64::new(16041)
+                }
+            ]
+        }
+    }
+
+    #[test]
+    fn test_i2p_integer_addition() {
+        let tests = i2p_integer_addition_test_cases();
+        for test_case in tests.data {
+            let result = test_case.arg1 + test_case.arg2;
+            assert_eq!(result, test_case.result);
+        }
+    }
+
+    #[test]
+    fn test_i2p_integer_multiplication() {
+        let tests = i2p_integer_multiplication_test_cases();
+        for test_case in tests.data {
+            let result = test_case.arg1 * test_case.arg2;
+            assert_eq!(result, test_case.result);
+        }
+    }
+
+    #[test]
+    fn test_i2p_integer_subtraction() {
+        let tests = i2p_integer_subtraction_test_cases();
+        for test_case in tests.data {
+            let result = test_case.arg1 - test_case.arg2;
+            assert_eq!(result, test_case.result);
+        }
+    }
+
+    #[test]
+    fn test_i2p_integer_division() {
+        let tests = i2p_integer_division_test_cases();
+        for test_case in tests.data {
+            let result = test_case.arg1 / test_case.arg2;
+            assert_eq!(result, test_case.result);
+        }
+    }
+
+    #[test]
+    fn test_i2p_integer_remainder() {
+        let tests = i2p_integer_remainder_test_cases();
+        for test_case in tests.data {
+            let result = test_case.arg1 % test_case.arg2;
+            assert_eq!(result, test_case.result);
+        }
+    }
 
     #[test]
     fn test_from_bytes_be_should_return_zero_on_empty_slice() {
