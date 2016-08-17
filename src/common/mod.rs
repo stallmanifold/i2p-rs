@@ -1,2 +1,3 @@
 mod i2p_integer;
-mod date;
+mod i2p_date;
+mod i2p_string;

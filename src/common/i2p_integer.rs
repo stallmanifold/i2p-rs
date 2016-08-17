@@ -677,8 +677,7 @@ impl<I> fmt::UpperHex for I2pInteger<I> where I: I2pIntSize + I2pIntMask {
 #[cfg(test)]
 mod tests {
     use super::{I2pInt64, I2pInt16, I2pInt24};
-    use std::io::Write;
-    use std::io;
+
 
     struct TestCase {
         arg1: I2pInt64,
