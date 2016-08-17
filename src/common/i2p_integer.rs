@@ -6,6 +6,7 @@ use std::ops::{Shl, Shr};
 use std::ops::{AddAssign, SubAssign, MulAssign, DivAssign, RemAssign};
 use std::ops::{BitAndAssign, BitOrAssign, BitXorAssign, ShlAssign, ShrAssign};
 use std::cmp::{PartialOrd, Ord, Ordering};
+use util::byte_order;
 
 
 pub const I2P_INTEGER_SIZE: usize = 8;
@@ -69,7 +70,7 @@ mask_impl!(_8, 0xFFFF_FFFF_FFFF_FFFF);
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Default, Hash)]
 pub struct I2pInteger<I: I2pIntSize> {
     data: u64,
-    _marker: PhantomData<I>,
+    _marker: PhantomData<I>
 }
 
 impl<I> I2pInteger<I> where I: I2pIntSize + I2pIntMask {
@@ -78,7 +79,7 @@ impl<I> I2pInteger<I> where I: I2pIntSize + I2pIntMask {
 
         I2pInteger {
             data: data & mask,
-            _marker: PhantomData,
+            _marker: PhantomData
         }
     }
 
@@ -95,7 +96,12 @@ impl<I> I2pInteger<I> where I: I2pIntSize + I2pIntMask {
         let mut result: u64 = 0x00;
 
         for byte in bytes {
-            result = (result | *byte as u64) << 8;
+            result <<= 8;
+            result = result | (*byte as u64);
+        }
+
+        if byte_order::is_big_endian() {
+            result = result.swap_bytes();
         }
 
         Some(I2pInteger::new(result & mask))
@@ -103,7 +109,7 @@ impl<I> I2pInteger<I> where I: I2pIntSize + I2pIntMask {
 
     pub fn to_bytes_be(&self) -> Vec<u8> {
         let mut bytes = Vec::new();
-        let mut data  = self.data;
+        let mut data  = self.data.to_be();
         let mask = 0xFF;
 
         while data > 0 {
@@ -111,8 +117,6 @@ impl<I> I2pInteger<I> where I: I2pIntSize + I2pIntMask {
             data >>= 8;
             bytes.push(byte);
         }
-
-        bytes.reverse();
 
         bytes
     }
@@ -673,7 +677,8 @@ impl<I> fmt::UpperHex for I2pInteger<I> where I: I2pIntSize + I2pIntMask {
 #[cfg(test)]
 mod tests {
     use super::{I2pInt64, I2pInt16, I2pInt24};
-
+    use std::io::Write;
+    use std::io;
 
     struct TestCase {
         arg1: I2pInt64,
@@ -897,7 +902,10 @@ mod tests {
     #[test]
     fn test_bytes_should_be_reversible() {
         let value = I2pInt64::new(0x0102030405060708);
+        let value_be: [u8; 8] = [0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08];
         let bytes = value.to_bytes_be();
+        assert_eq!(value_be.as_ref(), bytes.as_slice());
+        // Convert a value to raw bytes and back and check is we get out old result back.
         let result = I2pInt64::from_bytes_be(bytes.as_slice()).unwrap();
         assert_eq!(value, result);
     }
