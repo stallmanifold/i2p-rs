@@ -13,6 +13,7 @@ pub struct I2pString {
     data: String
 }
 
+#[derive(Copy, Clone, PartialEq, Eq, Debug)]
 enum I2pStringError {
     NotEnoughCapacity,
     InvalidUtf8,
@@ -101,5 +102,40 @@ impl I2pString {
         self.data.clear();
         self.length = 0;
         self.data.push(0 as char);
+    }
+}
+
+
+#[cfg(test)]
+mod tests {
+    use super::{I2pString, I2pStringError};
+
+
+    #[test]
+    fn test_push_str_should_accept_strings_of_max_length() {
+        let mut string = String::new();
+        // Generate a maximum length I2pString.
+        for _ in 0..super::I2P_MAX_STRING_LENGTH {
+            string.push('A');
+        }
+
+        let mut i2p_string = I2pString::new();
+        let result = i2p_string.push_str(string.as_str());
+        assert!(result.is_ok());
+        assert_eq!(i2p_string.len(), i2p_string.capacity());
+    }
+
+    #[test]
+    fn test_push_should_fail_only_when_string_is_max_length() {
+        let mut string = String::new();
+        // Generate a string.
+        for _ in 0..super::I2P_MAX_STRING_LENGTH {
+            string.push('A');
+        }
+
+        let mut i2p_string = I2pString::new();
+        // Generate a maximum length i2p_string.
+        let result = i2p_string.push(b'A');
+        assert!(result.is_err());
     }
 }
