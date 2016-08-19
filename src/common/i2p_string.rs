@@ -1,5 +1,6 @@
 use std::convert::From;
 use std::str;
+use std::fmt;
 
 
 const I2P_MAX_STRING_LENGTH: usize = 256;
@@ -23,7 +24,6 @@ enum I2pStringError {
 impl I2pString {
     fn new() -> I2pString {
         let mut data = String::with_capacity(I2P_MAX_STRING_LENGTH);
-        data.push(0 as char);
 
         I2pString {
             length: 0,
@@ -34,7 +34,7 @@ impl I2pString {
     /// Returns the complete length of the string, including the
     /// leading length character.
     fn len_bytes(&self) -> usize {
-        self.data.len()
+        self.length + 1
     }
 
     /// Return the total number of characters.
@@ -53,7 +53,6 @@ impl I2pString {
             if str_slice.is_ok() {
                 let length = slice.len();
                 let mut data = String::with_capacity(I2P_MAX_STRING_LENGTH);
-                data.push(length as u8 as char);
                 data.push_str(str_slice.unwrap());
 
                 let string = I2pString {
@@ -114,10 +113,23 @@ impl I2pString {
     fn clear(&mut self) {
         self.data.clear();
         self.length = 0;
-        self.data.push(0 as char);
     }
 }
 
+impl From<char> for I2pString {
+    fn from(ch: char) -> I2pString {
+        let mut i2p_string = I2pString::new();
+        i2p_string.push(ch).unwrap();
+
+        i2p_string
+    }
+}
+
+impl fmt::Display for I2pString {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        self.data.fmt(f)
+    }
+}
 
 #[cfg(test)]
 mod tests {
