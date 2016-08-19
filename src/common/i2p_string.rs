@@ -23,7 +23,7 @@ enum I2pStringError {
 
 impl I2pString {
     fn new() -> I2pString {
-        let mut data = String::with_capacity(I2P_MAX_STRING_LENGTH);
+        let data = String::with_capacity(I2P_MAX_STRING_LENGTH);
 
         I2pString {
             length: 0,
