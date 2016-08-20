@@ -1,7 +1,11 @@
 [package]
-name = "rust-i2p"
-version = "0.2.0"
-authors = ["Stallmanifold <stallmanifold@gmail.com>"]
+name       = "rust-i2p"
+version    = "0.2.0"
+authors    = ["Stallmanifold <stallmanifold@gmail.com>"]
+readme     = "README.md"
+repository = "https://github.com/stallmanifold/rust-i2p.git"
 
 [dependencies]
-chrono = "0.2.25"
+chrono     = "0.2.25"
+quickcheck = "0.3.1"
+rand       = "0.3.14"
