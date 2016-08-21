@@ -9,8 +9,12 @@ pub use self::i2p_integer::I2pInt40;
 pub use self::i2p_integer::I2pInt48;
 pub use self::i2p_integer::I2pInt56;
 pub use self::i2p_integer::I2pInt64;
+pub use self::publickey::PublicKey;
+pub use self::privatekey::PrivateKey;
 
 
 mod i2p_integer;
 mod i2p_date;
 mod i2p_string;
+mod publickey;
+mod privatekey;
