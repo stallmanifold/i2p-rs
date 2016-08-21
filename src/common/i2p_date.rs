@@ -3,12 +3,14 @@ use chrono::datetime::DateTime;
 use chrono::naive::datetime::NaiveDateTime;
 use chrono::offset::utc;
 use std::fmt;
+use std::u64;
+use rand;
 
 
 /// The `Date` type counts the number of milliseconds since January 1, 1970 (UNIX time)
 /// in the GMT timezone. If the number is 0, the date is undefined or null.
 ///
-#[derive(Copy, Clone, PartialEq, Eq, Debug)]
+#[derive(Copy, Clone, PartialOrd, PartialEq, Eq, Debug)]
 pub struct I2pDate {
     milliseconds: I2pInt64
 }
@@ -40,6 +42,20 @@ impl I2pDate {
 
         DateTime::from_utc(naive_dt, utc::UTC)
     }
+
+    pub fn min_value() -> I2pDate {
+        I2pDate::new(I2pInt64::new(1))
+    }
+
+    pub fn max_value() -> I2pDate {
+        I2pDate::new(I2pInt64::new(u64::max_value()))
+    }
+}
+
+impl Default for I2pDate {
+    fn default() -> I2pDate {
+        I2pDate::min_value()
+    }
 }
 
 impl fmt::Display for I2pDate {
@@ -48,11 +64,19 @@ impl fmt::Display for I2pDate {
     }
 }
 
+impl rand::Rand for I2pDate {
+    fn rand<R: rand::Rng>(rng: &mut R) -> Self {
+        let random_date = I2pInt64::new(rng.next_u64());
+
+        I2pDate::new(random_date)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::I2pDate;
     use common::i2p_integer::I2pInt64;
-    
+
 
     #[test]
     #[should_panic]
