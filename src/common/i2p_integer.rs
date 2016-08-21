@@ -7,6 +7,7 @@ use std::ops::{AddAssign, SubAssign, MulAssign, DivAssign, RemAssign};
 use std::ops::{BitAndAssign, BitOrAssign, BitXorAssign, ShlAssign, ShrAssign};
 use std::cmp::{PartialOrd, Ord, Ordering};
 use util::byte_order;
+use rand;
 
 
 pub const I2P_INTEGER_SIZE: usize = 8;
@@ -68,7 +69,7 @@ mask_impl!(_8, 0xFFFF_FFFF_FFFF_FFFF);
 /// Represents a variable sized integer from 1 to 8 bytes long in
 /// network (big endian) byte order.
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Default, Hash)]
-pub struct I2pInteger<I: I2pIntSize> {
+pub struct I2pInteger<I> {
     data: u64,
     _marker: PhantomData<I>
 }
@@ -673,6 +674,11 @@ impl<I> fmt::UpperHex for I2pInteger<I> where I: I2pIntSize + I2pIntMask {
     }
 }
 
+impl<I> rand::Rand for I2pInteger<I> where I: I2pIntSize + I2pIntMask {
+    fn rand<R: rand::Rng>(rng: &mut R) -> I2pInteger<I> {
+        I2pInteger::new(rng.next_u64())
+    }
+}
 
 #[cfg(test)]
 mod tests {

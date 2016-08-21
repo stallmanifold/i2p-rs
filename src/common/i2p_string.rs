@@ -164,7 +164,7 @@ impl rand::Rand for I2pString {
 
 #[cfg(test)]
 mod tests {
-    use super::{I2pString, I2pStringError};
+    use super::I2pString;
 
 
     #[test]
@@ -207,7 +207,9 @@ mod tests {
 
         let mut i2p_string = I2pString::new();
         assert_eq!(i2p_string.len(), 0);
-        i2p_string.push_str(string.as_str());
+        let result = i2p_string.push_str(string.as_str());
+        assert!(result.is_ok());
+
         let old_length = i2p_string.len();
         let result = i2p_string.push('A');
         assert!(result.is_ok());
@@ -225,6 +227,7 @@ mod tests {
         let mut i2p_string = I2pString::new();
         assert_eq!(i2p_string.len(), 0);
         let result = i2p_string.push_str(string.as_str());
+        assert!(result.is_ok());
         assert_eq!(i2p_string.len(), i2p_string.capacity());
         // Generate a maximum length i2p_string.
         let result = i2p_string.push('A');

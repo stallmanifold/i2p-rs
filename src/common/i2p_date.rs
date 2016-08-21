@@ -81,7 +81,7 @@ mod tests {
     #[test]
     #[should_panic]
     fn test_constructor_should_panic_when_milliseconds_is_zero() {
-        let date = I2pDate::new(I2pInt64::new(0));
+        I2pDate::new(I2pInt64::new(0));
 
         // This test fails if no panic occurs.
         assert!(false);
