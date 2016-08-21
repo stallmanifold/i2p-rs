@@ -1,5 +1,4 @@
-#![crate_name = "rust_i2p"]
-
+#![crate_name = "rusti2p"]
 extern crate chrono;
 extern crate rand;
 extern crate quickcheck;
@@ -10,5 +9,5 @@ mod util;
 
 
 #[cfg(test)]
-#[path="tests/mod.rs"]
+#[path="tests/lib.rs"]
 mod tests;

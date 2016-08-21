@@ -1,5 +1,5 @@
 [package]
-name       = "rust-i2p"
+name       = "rusti2p"
 version    = "0.2.0"
 authors    = ["Stallmanifold <stallmanifold@gmail.com>"]
 readme     = "README.md"
