@@ -11,10 +11,12 @@ pub use self::i2p_integer::I2pInt56;
 pub use self::i2p_integer::I2pInt64;
 pub use self::publickey::PublicKey;
 pub use self::privatekey::PrivateKey;
+pub use self::i2p_hash::I2pHash;
 
 
 mod i2p_integer;
 mod i2p_date;
 mod i2p_string;
+mod i2p_hash;
 mod publickey;
 mod privatekey;
