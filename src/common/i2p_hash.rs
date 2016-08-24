@@ -64,7 +64,12 @@ impl From<[u8; I2P_SHA256_HASH_LENGTH]> for I2pHash {
 
 impl<'a> From<&'a [u8; I2P_SHA256_HASH_LENGTH]> for I2pHash {
     fn from(data: &'a [u8; I2P_SHA256_HASH_LENGTH]) -> I2pHash {
-        I2pHash::new(data.clone())
+        let mut cloned_data = [0x00; I2P_SHA256_HASH_LENGTH];
+        for i in 0..data.len() {
+            cloned_data[i] = data[i];
+        }
+
+        I2pHash::new(cloned_data)
     }
 }
 

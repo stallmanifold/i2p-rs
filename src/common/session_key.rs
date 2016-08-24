@@ -64,7 +64,12 @@ impl From<[u8; I2P_SESSION_KEY_LENGTH]> for SessionKey {
 
 impl<'a> From<&'a [u8; I2P_SESSION_KEY_LENGTH]> for SessionKey {
     fn from(data: &'a [u8; I2P_SESSION_KEY_LENGTH]) -> SessionKey {
-        SessionKey::new(data.clone())
+        let mut cloned_data = [0x00; I2P_SESSION_KEY_LENGTH];
+        for i in 0..data.len() {
+            cloned_data[i] = data[i];
+        }
+
+        SessionKey::new(cloned_data)
     }
 }
 

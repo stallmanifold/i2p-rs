@@ -64,7 +64,12 @@ impl From<[u8; I2P_SESSION_TAG_LENGTH]> for SessionTag {
 
 impl<'a> From<&'a [u8; I2P_SESSION_TAG_LENGTH]> for SessionTag {
     fn from(data: &'a [u8; I2P_SESSION_TAG_LENGTH]) -> SessionTag {
-        SessionTag::new(data.clone())
+        let mut cloned_data = [0x00; I2P_SESSION_TAG_LENGTH];
+        for i in 0..data.len() {
+            cloned_data[i] = data[i];
+        }
+
+        SessionTag::new(cloned_data)
     }
 }
 
