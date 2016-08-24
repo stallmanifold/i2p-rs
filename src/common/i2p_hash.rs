@@ -18,7 +18,7 @@ impl I2pHash {
     }
 
     /// Returns the length of an `I2pHash` in bytes.
-    pub fn len() -> usize {
+    pub fn len(&self) -> usize {
         I2P_SHA256_HASH_LENGTH
     }
 
@@ -36,7 +36,7 @@ impl Default for I2pHash {
 impl Clone for I2pHash {
     fn clone(&self) -> I2pHash {
         let mut cloned_hash = [0x00; I2P_SHA256_HASH_LENGTH];
-        for i in 0..self.data.len() {
+        for i in 0..self.len() {
             cloned_hash[i] = self.data[i];
         }
 
@@ -46,7 +46,7 @@ impl Clone for I2pHash {
 
 impl PartialEq for I2pHash {
     fn eq(&self, other: &I2pHash) -> bool {
-        for i in 0..self.data.len() {
+        for i in 0..self.len() {
             if self.data[i] != other.data[i] {
                 return false;
             }

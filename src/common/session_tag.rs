@@ -18,7 +18,7 @@ impl SessionTag {
     }
 
     /// Returns the length of an `SessionTag` in bytes.
-    pub fn len() -> usize {
+    pub fn len(&self) -> usize {
         I2P_SESSION_TAG_LENGTH
     }
 
@@ -36,7 +36,7 @@ impl Default for SessionTag {
 impl Clone for SessionTag {
     fn clone(&self) -> SessionTag {
         let mut cloned_hash = [0x00; I2P_SESSION_TAG_LENGTH];
-        for i in 0..self.data.len() {
+        for i in 0..self.len() {
             cloned_hash[i] = self.data[i];
         }
 
@@ -46,7 +46,7 @@ impl Clone for SessionTag {
 
 impl PartialEq for SessionTag {
     fn eq(&self, other: &SessionTag) -> bool {
-        for i in 0..self.data.len() {
+        for i in 0..self.len() {
             if self.data[i] != other.data[i] {
                 return false;
             }

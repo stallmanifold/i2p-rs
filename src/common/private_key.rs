@@ -4,16 +4,16 @@ use rustc_serialize::base64::ToBase64;
 use rustc_serialize::base64;
 
 
-const I2P_PUBLIC_KEY_LENGTH: usize = 256;
+const I2P_PRIVATE_KEY_LENGTH: usize = 256;
 
 #[derive(Copy, Eq)]
 pub struct PrivateKey {
-    data: [u8; I2P_PUBLIC_KEY_LENGTH]
+    data: [u8; I2P_PRIVATE_KEY_LENGTH]
 }
 
 impl PrivateKey {
-    fn new(slice: [u8; I2P_PUBLIC_KEY_LENGTH]) -> PrivateKey {
-        let mut data: [u8; I2P_PUBLIC_KEY_LENGTH] = [0x00; I2P_PUBLIC_KEY_LENGTH];
+    fn new(slice: [u8; I2P_PRIVATE_KEY_LENGTH]) -> PrivateKey {
+        let mut data: [u8; I2P_PRIVATE_KEY_LENGTH] = [0x00; I2P_PRIVATE_KEY_LENGTH];
         for i in 0..slice.len() {
             data[i] = slice[i];
         }
@@ -28,9 +28,9 @@ impl PrivateKey {
     }
 
     fn from_slice(slice: &[u8]) -> Option<PrivateKey> {
-        if slice.len() <= I2P_PUBLIC_KEY_LENGTH {
-            let mut key_bytes = [0x00; I2P_PUBLIC_KEY_LENGTH];
-            let offset = I2P_PUBLIC_KEY_LENGTH - slice.len();
+        if slice.len() <= I2P_PRIVATE_KEY_LENGTH {
+            let mut key_bytes = [0x00; I2P_PRIVATE_KEY_LENGTH];
+            let offset = I2P_PRIVATE_KEY_LENGTH - slice.len();
             for i in 0..slice.len() {
                 key_bytes[i + offset] = slice[i];
             }
@@ -47,7 +47,7 @@ impl PrivateKey {
 
 impl Clone for PrivateKey {
     fn clone(&self) -> PrivateKey {
-        let mut cloned_array = [0x00; I2P_PUBLIC_KEY_LENGTH];
+        let mut cloned_array = [0x00; I2P_PRIVATE_KEY_LENGTH];
         for i in 0..cloned_array.len() {
             cloned_array[i] = self.data[i];
         }
@@ -71,8 +71,20 @@ impl PartialEq for PrivateKey {
 impl Default for PrivateKey {
     fn default() -> PrivateKey {
         PrivateKey {
-            data: [0x00; I2P_PUBLIC_KEY_LENGTH]
+            data: [0x00; I2P_PRIVATE_KEY_LENGTH]
         }
+    }
+}
+
+impl From<[u8; I2P_PRIVATE_KEY_LENGTH]> for PrivateKey {
+    fn from(data: [u8; I2P_PRIVATE_KEY_LENGTH]) -> PrivateKey {
+        PrivateKey::new(data)
+    }
+}
+
+impl<'a> From<&'a [u8; I2P_PRIVATE_KEY_LENGTH]> for PrivateKey {
+    fn from(data: &'a [u8; I2P_PRIVATE_KEY_LENGTH]) -> PrivateKey {
+        PrivateKey::new(data.clone())
     }
 }
 

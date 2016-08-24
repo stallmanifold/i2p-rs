@@ -17,8 +17,8 @@ impl SessionKey {
         }
     }
 
-    /// Returns the length of an `SessionKey` in bytes.
-    pub fn len() -> usize {
+    /// Returns the length of a `SessionKey` in bytes.
+    pub fn len(&self) -> usize {
         I2P_SESSION_KEY_LENGTH
     }
 
@@ -36,7 +36,7 @@ impl Default for SessionKey {
 impl Clone for SessionKey {
     fn clone(&self) -> SessionKey {
         let mut cloned_hash = [0x00; I2P_SESSION_KEY_LENGTH];
-        for i in 0..self.data.len() {
+        for i in 0..self.len() {
             cloned_hash[i] = self.data[i];
         }
 
@@ -46,7 +46,7 @@ impl Clone for SessionKey {
 
 impl PartialEq for SessionKey {
     fn eq(&self, other: &SessionKey) -> bool {
-        for i in 0..self.data.len() {
+        for i in 0..self.len() {
             if self.data[i] != other.data[i] {
                 return false;
             }

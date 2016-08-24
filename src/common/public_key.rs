@@ -76,6 +76,18 @@ impl Default for PublicKey {
     }
 }
 
+impl From<[u8; I2P_PUBLIC_KEY_LENGTH]> for PublicKey {
+    fn from(data: [u8; I2P_PUBLIC_KEY_LENGTH]) -> PublicKey {
+        PublicKey::new(data)
+    }
+}
+
+impl<'a> From<&'a [u8; I2P_PUBLIC_KEY_LENGTH]> for PublicKey {
+    fn from(data: &'a [u8; I2P_PUBLIC_KEY_LENGTH]) -> PublicKey {
+        PublicKey::new(data.clone())
+    }
+}
+
 impl fmt::Display for PublicKey {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         fn config() -> base64::Config {
