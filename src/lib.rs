@@ -2,6 +2,7 @@
 extern crate chrono;
 extern crate rand;
 extern crate quickcheck;
+extern crate rustc_serialize;
 
 
 pub mod common;

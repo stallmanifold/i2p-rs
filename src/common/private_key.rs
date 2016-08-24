@@ -1,5 +1,7 @@
 use std::fmt;
 use std::fmt::Write;
+use rustc_serialize::base64::ToBase64;
+use rustc_serialize::base64;
 
 
 const I2P_PUBLIC_KEY_LENGTH: usize = 256;
@@ -76,11 +78,15 @@ impl Default for PrivateKey {
 
 impl fmt::Display for PrivateKey {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let mut string = String::new();
-        for i in 0..self.len() {
-            write!(string, "{:X}", self.data[i]).unwrap();
+        fn config() -> base64::Config {
+            base64::Config {
+                char_set: base64::CharacterSet::Standard,
+                newline: base64::Newline::LF,
+                pad: false,
+                line_length: None
+            }
         }
 
-        write!(f, "{}", string)
+        write!(f, "{}", self.as_slice().to_base64(config()))
     }
 }

@@ -9,14 +9,18 @@ pub use self::i2p_integer::I2pInt40;
 pub use self::i2p_integer::I2pInt48;
 pub use self::i2p_integer::I2pInt56;
 pub use self::i2p_integer::I2pInt64;
-pub use self::publickey::PublicKey;
-pub use self::privatekey::PrivateKey;
+pub use self::public_key::PublicKey;
+pub use self::private_key::PrivateKey;
 pub use self::i2p_hash::I2pHash;
+pub use self::session_key::SessionKey;
+pub use self::session_tag::SessionTag;
 
 
 mod i2p_integer;
 mod i2p_date;
 mod i2p_string;
 mod i2p_hash;
-mod publickey;
-mod privatekey;
+mod public_key;
+mod private_key;
+mod session_key;
+mod session_tag;

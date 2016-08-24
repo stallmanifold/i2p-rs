@@ -1,4 +1,6 @@
 use std::fmt;
+use rustc_serialize::base64::ToBase64;
+use rustc_serialize::base64;
 
 
 const I2P_SHA256_HASH_LENGTH: usize = 32;
@@ -66,7 +68,22 @@ impl<'a> From<&'a [u8; I2P_SHA256_HASH_LENGTH]> for I2pHash {
     }
 }
 
-pub trait I2pHashable {
+impl fmt::Display for I2pHash {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        fn config() -> base64::Config {
+            base64::Config {
+                char_set: base64::CharacterSet::Standard,
+                newline: base64::Newline::LF,
+                pad: false,
+                line_length: None
+            }
+        }
+
+        write!(f, "{}", self.as_slice().to_base64(config()))
+    }
+}
+
+pub trait Hashable {
     fn hash(&self) -> I2pHash;
 }
 
