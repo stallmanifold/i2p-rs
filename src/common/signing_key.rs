@@ -90,6 +90,12 @@ impl SigningPublicKey {
     }
 }
 
+impl Default for SigningPublicKey {
+    fn default() -> SigningPublicKey {
+        SigningPublicKey::new(SignatureType::DSA_SHA1)
+    }
+}
+
 impl fmt::Display for SigningPublicKey {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         fn config() -> base64::Config {
@@ -152,6 +158,12 @@ impl SigningPrivateKey {
 
     fn as_slice(&self) -> &[u8] {
         self.data.as_ref()
+    }
+}
+
+impl Default for SigningPrivateKey {
+    fn default() -> SigningPrivateKey {
+        SigningPrivateKey::new(SignatureType::DSA_SHA1)
     }
 }
 
