@@ -12,12 +12,7 @@ pub struct PrivateKey {
 }
 
 impl PrivateKey {
-    fn new(slice: [u8; I2P_PRIVATE_KEY_LENGTH]) -> PrivateKey {
-        let mut data: [u8; I2P_PRIVATE_KEY_LENGTH] = [0x00; I2P_PRIVATE_KEY_LENGTH];
-        for i in 0..slice.len() {
-            data[i] = slice[i];
-        }
-
+    fn new(data: [u8; I2P_PRIVATE_KEY_LENGTH]) -> PrivateKey {
         PrivateKey {
             data: data
         }
@@ -84,7 +79,12 @@ impl From<[u8; I2P_PRIVATE_KEY_LENGTH]> for PrivateKey {
 
 impl<'a> From<&'a [u8; I2P_PRIVATE_KEY_LENGTH]> for PrivateKey {
     fn from(data: &'a [u8; I2P_PRIVATE_KEY_LENGTH]) -> PrivateKey {
-        PrivateKey::new(data.clone())
+        let mut cloned_data = [0x00; I2P_PRIVATE_KEY_LENGTH];
+        for i in 0..data.len() {
+            cloned_data[i] = data[i];
+        }
+
+        PrivateKey::new(cloned_data)
     }
 }
 

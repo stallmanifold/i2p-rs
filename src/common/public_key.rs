@@ -12,12 +12,7 @@ pub struct PublicKey {
 }
 
 impl PublicKey {
-    fn new(slice: [u8; I2P_PUBLIC_KEY_LENGTH]) -> PublicKey {
-        let mut data: [u8; I2P_PUBLIC_KEY_LENGTH] = [0x00; I2P_PUBLIC_KEY_LENGTH];
-        for i in 0..slice.len() {
-            data[i] = slice[i];
-        }
-
+    fn new(data: [u8; I2P_PUBLIC_KEY_LENGTH]) -> PublicKey {
         PublicKey {
             data: data
         }
@@ -84,7 +79,12 @@ impl From<[u8; I2P_PUBLIC_KEY_LENGTH]> for PublicKey {
 
 impl<'a> From<&'a [u8; I2P_PUBLIC_KEY_LENGTH]> for PublicKey {
     fn from(data: &'a [u8; I2P_PUBLIC_KEY_LENGTH]) -> PublicKey {
-        PublicKey::new(data.clone())
+        let mut cloned_data = [0x00; I2P_PUBLIC_KEY_LENGTH];
+        for i in 0..data.len() {
+            cloned_data[i] = data[i];
+        }
+
+        PublicKey::new(cloned_data)
     }
 }
 
