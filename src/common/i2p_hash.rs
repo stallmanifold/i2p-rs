@@ -14,6 +14,15 @@ impl I2pHash {
             data: data
         }
     }
+
+    /// Returns the length of an `I2pHash` in bytes.
+    pub fn len() -> usize {
+        I2P_SHA256_HASH_LENGTH
+    }
+
+    fn as_slice(&self) -> &[u8] {
+        self.data.as_ref()
+    }
 }
 
 impl Default for I2pHash {
@@ -43,6 +52,22 @@ impl PartialEq for I2pHash {
 
         true
     }
+}
+
+impl From<[u8; I2P_SHA256_HASH_LENGTH]> for I2pHash {
+    fn from(data: [u8; I2P_SHA256_HASH_LENGTH]) -> I2pHash {
+        I2pHash::new(data)
+    }
+}
+
+impl<'a> From<&'a [u8; I2P_SHA256_HASH_LENGTH]> for I2pHash {
+    fn from(data: &'a [u8; I2P_SHA256_HASH_LENGTH]) -> I2pHash {
+        I2pHash::new(data.clone())
+    }
+}
+
+pub trait I2pHashable {
+    fn hash(&self) -> I2pHash;
 }
 
 
