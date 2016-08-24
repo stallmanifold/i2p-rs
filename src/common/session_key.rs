@@ -83,6 +83,11 @@ impl fmt::Display for SessionKey {
     }
 }
 
+impl AsRef<[u8]> for SessionKey {
+    fn as_ref(&self) -> &[u8] {
+        self.as_slice()
+    }
+}
 
 #[cfg(test)]
 mod tests {

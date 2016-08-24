@@ -102,3 +102,9 @@ impl fmt::Display for PublicKey {
         write!(f, "{}", self.as_slice().to_base64(config()))
     }
 }
+
+impl AsRef<[u8]> for PublicKey {
+    fn as_ref(&self) -> &[u8] {
+        self.as_slice()
+    }
+}

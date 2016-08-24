@@ -83,6 +83,12 @@ impl fmt::Display for I2pHash {
     }
 }
 
+impl AsRef<[u8]> for I2pHash {
+    fn as_ref(&self) -> &[u8] {
+        self.as_slice()
+    }
+}
+
 pub trait Hashable {
     fn hash(&self) -> I2pHash;
 }

@@ -102,3 +102,9 @@ impl fmt::Display for PrivateKey {
         write!(f, "{}", self.as_slice().to_base64(config()))
     }
 }
+
+impl AsRef<[u8]> for PrivateKey {
+    fn as_ref(&self) -> &[u8] {
+        self.as_slice()
+    }
+}
