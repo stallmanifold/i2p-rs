@@ -111,6 +111,71 @@ impl AsRef<[u8]> for SigningPublicKey {
     }
 }
 
+#[derive(Clone, PartialEq, Eq, Debug)]
+pub struct SigningPrivateKey {
+    sigtype: SignatureType,
+    data: Vec<u8>
+}
+
+impl SigningPrivateKey {
+    fn new(sigtype: SignatureType) -> SigningPrivateKey {
+        let mut data: Vec<u8> = Vec::with_capacity(sigtype.signing_public_key_length());
+        for i in 0..data.capacity() {
+            data.push(0x00);
+        }
+
+        SigningPrivateKey {
+            sigtype: sigtype,
+            data: data
+        }
+    }
+
+    fn from_bytes(sigtype: SignatureType, bytes: &[u8]) -> Option<SigningPrivateKey> {
+        if sigtype.signing_public_key_length() == bytes.len() {
+            let data: Vec<u8> = bytes.iter().map(|c: &u8| *c).collect();
+
+            let key = SigningPrivateKey {
+                sigtype: sigtype,
+                data: data
+            };
+
+            Some(key)
+        } else {
+            None
+        }
+    }
+
+    /// Returns the length of a `SigningPublicKey` in bytes.
+    fn len(&self) -> usize {
+        self.data.len()
+    }
+
+    fn as_slice(&self) -> &[u8] {
+        self.data.as_ref()
+    }
+}
+
+impl fmt::Display for SigningPrivateKey {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        fn config() -> base64::Config {
+            base64::Config {
+                char_set: base64::CharacterSet::Standard,
+                newline: base64::Newline::LF,
+                pad: false,
+                line_length: None
+            }
+        }
+
+        write!(f, "{}", self.as_slice().to_base64(config()))
+    }
+}
+
+impl AsRef<[u8]> for SigningPrivateKey {
+    fn as_ref(&self) -> &[u8] {
+        self.as_slice()
+    }
+}
+
 
 #[cfg(test)]
 mod tests {
