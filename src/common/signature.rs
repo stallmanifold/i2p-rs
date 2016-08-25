@@ -3,6 +3,7 @@ use rustc_serialize::base64::ToBase64;
 use rustc_serialize::base64;
 
 
+#[allow(non_camel_case_types)]
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum SignatureType {
     DSA_SHA1,
@@ -126,7 +127,6 @@ impl SigningLength for SigningPublicKey {
         }
     }
 }
-
 data_structure_impl!(SigningPublicKey);
 
 data_structure_def!(SigningPrivateKey);
@@ -146,7 +146,6 @@ impl SigningLength for SigningPrivateKey {
         }
     }
 }
-
 data_structure_impl!(SigningPrivateKey);
 
 data_structure_def!(Signature);
@@ -166,7 +165,6 @@ impl SigningLength for Signature {
         }
     }
 }
-
 data_structure_impl!(Signature);
 
 #[cfg(test)]
