@@ -16,37 +16,6 @@ pub enum SignatureType {
     EdDSA_SHA512_Ed25519ph
 }
 
-impl SignatureType {
-    pub fn signing_public_key_length(&self) -> usize {
-        match *self {
-            SignatureType::DSA_SHA1               => 128,
-            SignatureType::ECDSA_SHA256_P256      => 64,
-            SignatureType::ECDSA_SHA384_P384      => 96,
-            SignatureType::ECDSA_SHA512_P521      => 132,
-            SignatureType::RSA_SHA256_2048        => 256,
-            SignatureType::RSA_SHA384_3072        => 384,
-            SignatureType::RSA_SHA512_4096        => 512,
-            SignatureType::EdDSA_SHA512_Ed25519   => 32,
-            SignatureType::EdDSA_SHA512_Ed25519ph => 32
-        }
-    }
-
-    pub fn signing_private_key_length(&self) -> usize {
-        match *self {
-            SignatureType::DSA_SHA1               => 20,
-            SignatureType::ECDSA_SHA256_P256      => 32,
-            SignatureType::ECDSA_SHA384_P384      => 48,
-            SignatureType::ECDSA_SHA512_P521      => 66,
-            SignatureType::RSA_SHA256_2048        => 512,
-            SignatureType::RSA_SHA384_3072        => 768,
-            SignatureType::RSA_SHA512_4096        => 1024,
-            SignatureType::EdDSA_SHA512_Ed25519   => 32,
-            SignatureType::EdDSA_SHA512_Ed25519ph => 32
-        }
-    }
-
-}
-
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub struct SigningPublicKey {
     sigtype: SignatureType,
@@ -55,7 +24,7 @@ pub struct SigningPublicKey {
 
 impl SigningPublicKey {
     fn new(sigtype: SignatureType) -> SigningPublicKey {
-        let mut data: Vec<u8> = Vec::with_capacity(sigtype.signing_public_key_length());
+        let mut data: Vec<u8> = Vec::with_capacity(Self::signing_public_key_length(sigtype));
         for _ in 0..data.capacity() {
             data.push(0x00);
         }
@@ -67,7 +36,7 @@ impl SigningPublicKey {
     }
 
     fn from_bytes(sigtype: SignatureType, bytes: &[u8]) -> Option<SigningPublicKey> {
-        if sigtype.signing_public_key_length() == bytes.len() {
+        if Self::signing_public_key_length(sigtype) == bytes.len() {
             let data: Vec<u8> = bytes.iter().map(|c: &u8| *c).collect();
 
             let key = SigningPublicKey {
@@ -78,6 +47,20 @@ impl SigningPublicKey {
             Some(key)
         } else {
             None
+        }
+    }
+
+    pub fn signing_public_key_length(sigtype: SignatureType) -> usize {
+        match sigtype {
+            SignatureType::DSA_SHA1               => 128,
+            SignatureType::ECDSA_SHA256_P256      => 64,
+            SignatureType::ECDSA_SHA384_P384      => 96,
+            SignatureType::ECDSA_SHA512_P521      => 132,
+            SignatureType::RSA_SHA256_2048        => 256,
+            SignatureType::RSA_SHA384_3072        => 384,
+            SignatureType::RSA_SHA512_4096        => 512,
+            SignatureType::EdDSA_SHA512_Ed25519   => 32,
+            SignatureType::EdDSA_SHA512_Ed25519ph => 32
         }
     }
 
@@ -126,7 +109,7 @@ pub struct SigningPrivateKey {
 
 impl SigningPrivateKey {
     fn new(sigtype: SignatureType) -> SigningPrivateKey {
-        let mut data: Vec<u8> = Vec::with_capacity(sigtype.signing_public_key_length());
+        let mut data: Vec<u8> = Vec::with_capacity(Self::signing_private_key_length(sigtype));
         for _ in 0..data.capacity() {
             data.push(0x00);
         }
@@ -138,7 +121,7 @@ impl SigningPrivateKey {
     }
 
     fn from_bytes(sigtype: SignatureType, bytes: &[u8]) -> Option<SigningPrivateKey> {
-        if sigtype.signing_public_key_length() == bytes.len() {
+        if Self::signing_private_key_length(sigtype) == bytes.len() {
             let data: Vec<u8> = bytes.iter().map(|c: &u8| *c).collect();
 
             let key = SigningPrivateKey {
@@ -159,6 +142,20 @@ impl SigningPrivateKey {
 
     fn as_slice(&self) -> &[u8] {
         self.data.as_ref()
+    }
+
+    fn signing_private_key_length(sigtype: SignatureType) -> usize {
+        match sigtype {
+            SignatureType::DSA_SHA1               => 20,
+            SignatureType::ECDSA_SHA256_P256      => 32,
+            SignatureType::ECDSA_SHA384_P384      => 48,
+            SignatureType::ECDSA_SHA512_P521      => 66,
+            SignatureType::RSA_SHA256_2048        => 512,
+            SignatureType::RSA_SHA384_3072        => 768,
+            SignatureType::RSA_SHA512_4096        => 1024,
+            SignatureType::EdDSA_SHA512_Ed25519   => 32,
+            SignatureType::EdDSA_SHA512_Ed25519ph => 32
+        }
     }
 }
 
