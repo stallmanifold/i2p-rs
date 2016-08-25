@@ -16,41 +16,103 @@ pub enum SignatureType {
     EdDSA_SHA512_Ed25519ph
 }
 
-#[derive(Clone, PartialEq, Eq, Debug)]
-pub struct SigningPublicKey {
-    sigtype: SignatureType,
-    data: Vec<u8>
+// The macro invocation chain occurs as follows:
+// data_structure_def!(TypeName);
+//
+// impl SigningLength for TypeName {
+//     fn signing_length(sigtype: SignatureType) -> usize {
+//         ...
+//     }
+// }
+//
+// data_structure_impl!(TypeName);
+macro_rules! data_structure_def {
+    ($type_name:ident) => {
+        #[derive(Clone, PartialEq, Eq, Debug)]
+        pub struct $type_name {
+            sigtype: SignatureType,
+            data: Vec<u8>
+        }
+    }
 }
 
-impl SigningPublicKey {
-    fn new(sigtype: SignatureType) -> SigningPublicKey {
-        let mut data: Vec<u8> = Vec::with_capacity(Self::signing_public_key_length(sigtype));
-        for _ in 0..data.capacity() {
-            data.push(0x00);
+trait SigningLength {
+    fn signing_length(sigtype: SignatureType) -> usize;
+}
+
+macro_rules! data_structure_impl {
+    ($type_name:ident) => {
+        impl $type_name {
+            fn new(sigtype: SignatureType) -> $type_name {
+                let mut data: Vec<u8> = Vec::with_capacity(Self::signing_length(sigtype));
+                for _ in 0..data.capacity() {
+                    data.push(0x00);
+                }
+
+                $type_name {
+                    sigtype: sigtype,
+                    data: data
+                }
+            }
+
+            fn from_bytes(sigtype: SignatureType, bytes: &[u8]) -> Option<$type_name> {
+                if Self::signing_length(sigtype) == bytes.len() {
+                    let data: Vec<u8> = bytes.iter().map(|c: &u8| *c).collect();
+
+                    let key = $type_name {
+                        sigtype: sigtype,
+                        data: data
+                    };
+
+                    Some(key)
+                } else {
+                    None
+                }
+            }
+
+            /// Returns the length of a `$type_name` in bytes.
+            fn len(&self) -> usize {
+                self.data.len()
+            }
+
+            fn as_slice(&self) -> &[u8] {
+                self.data.as_ref()
+            }
         }
 
-        SigningPublicKey {
-            sigtype: sigtype,
-            data: data
+        impl Default for $type_name {
+            fn default() -> $type_name {
+                $type_name::new(SignatureType::DSA_SHA1)
+            }
+        }
+
+        impl fmt::Display for $type_name {
+            fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+                fn config() -> base64::Config {
+                    base64::Config {
+                        char_set: base64::CharacterSet::Standard,
+                        newline: base64::Newline::LF,
+                        pad: false,
+                        line_length: None
+                    }
+                }
+
+                write!(f, "{}", self.as_slice().to_base64(config()))
+            }
+        }
+
+        impl AsRef<[u8]> for $type_name {
+            fn as_ref(&self) -> &[u8] {
+                self.as_slice()
+            }
         }
     }
+}
 
-    fn from_bytes(sigtype: SignatureType, bytes: &[u8]) -> Option<SigningPublicKey> {
-        if Self::signing_public_key_length(sigtype) == bytes.len() {
-            let data: Vec<u8> = bytes.iter().map(|c: &u8| *c).collect();
+data_structure_def!(SigningPublicKey);
 
-            let key = SigningPublicKey {
-                sigtype: sigtype,
-                data: data
-            };
-
-            Some(key)
-        } else {
-            None
-        }
-    }
-
-    pub fn signing_public_key_length(sigtype: SignatureType) -> usize {
+impl SigningLength for SigningPublicKey {
+    fn signing_length(sigtype: SignatureType) -> usize {
         match sigtype {
             SignatureType::DSA_SHA1               => 128,
             SignatureType::ECDSA_SHA256_P256      => 64,
@@ -63,88 +125,14 @@ impl SigningPublicKey {
             SignatureType::EdDSA_SHA512_Ed25519ph => 32
         }
     }
-
-    /// Returns the length of a `SigningPublicKey` in bytes.
-    fn len(&self) -> usize {
-        self.data.len()
-    }
-
-    fn as_slice(&self) -> &[u8] {
-        self.data.as_ref()
-    }
 }
 
-impl Default for SigningPublicKey {
-    fn default() -> SigningPublicKey {
-        SigningPublicKey::new(SignatureType::DSA_SHA1)
-    }
-}
+data_structure_impl!(SigningPublicKey);
 
-impl fmt::Display for SigningPublicKey {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        fn config() -> base64::Config {
-            base64::Config {
-                char_set: base64::CharacterSet::Standard,
-                newline: base64::Newline::LF,
-                pad: false,
-                line_length: None
-            }
-        }
+data_structure_def!(SigningPrivateKey);
 
-        write!(f, "{}", self.as_slice().to_base64(config()))
-    }
-}
-
-impl AsRef<[u8]> for SigningPublicKey {
-    fn as_ref(&self) -> &[u8] {
-        self.as_slice()
-    }
-}
-
-#[derive(Clone, PartialEq, Eq, Debug)]
-pub struct SigningPrivateKey {
-    sigtype: SignatureType,
-    data: Vec<u8>
-}
-
-impl SigningPrivateKey {
-    fn new(sigtype: SignatureType) -> SigningPrivateKey {
-        let mut data: Vec<u8> = Vec::with_capacity(Self::signing_private_key_length(sigtype));
-        for _ in 0..data.capacity() {
-            data.push(0x00);
-        }
-
-        SigningPrivateKey {
-            sigtype: sigtype,
-            data: data
-        }
-    }
-
-    fn from_bytes(sigtype: SignatureType, bytes: &[u8]) -> Option<SigningPrivateKey> {
-        if Self::signing_private_key_length(sigtype) == bytes.len() {
-            let data: Vec<u8> = bytes.iter().map(|c: &u8| *c).collect();
-
-            let key = SigningPrivateKey {
-                sigtype: sigtype,
-                data: data
-            };
-
-            Some(key)
-        } else {
-            None
-        }
-    }
-
-    /// Returns the length of a `SigningPublicKey` in bytes.
-    fn len(&self) -> usize {
-        self.data.len()
-    }
-
-    fn as_slice(&self) -> &[u8] {
-        self.data.as_ref()
-    }
-
-    fn signing_private_key_length(sigtype: SignatureType) -> usize {
+impl SigningLength for SigningPrivateKey {
+    fn signing_length(sigtype: SignatureType) -> usize {
         match sigtype {
             SignatureType::DSA_SHA1               => 20,
             SignatureType::ECDSA_SHA256_P256      => 32,
@@ -159,40 +147,12 @@ impl SigningPrivateKey {
     }
 }
 
-impl Default for SigningPrivateKey {
-    fn default() -> SigningPrivateKey {
-        SigningPrivateKey::new(SignatureType::DSA_SHA1)
-    }
-}
+data_structure_impl!(SigningPrivateKey);
 
-impl fmt::Display for SigningPrivateKey {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        fn config() -> base64::Config {
-            base64::Config {
-                char_set: base64::CharacterSet::Standard,
-                newline: base64::Newline::LF,
-                pad: false,
-                line_length: None
-            }
-        }
+data_structure_def!(Signature);
 
-        write!(f, "{}", self.as_slice().to_base64(config()))
-    }
-}
-
-impl AsRef<[u8]> for SigningPrivateKey {
-    fn as_ref(&self) -> &[u8] {
-        self.as_slice()
-    }
-}
-
-pub struct Signature {
-    sigtype: SignatureType,
-    data: Vec<u8>
-}
-
-impl Signature {
-    fn signature_length(sigtype: SignatureType) -> usize {
+impl SigningLength for Signature {
+    fn signing_length(sigtype: SignatureType) -> usize {
         match sigtype {
             SignatureType::DSA_SHA1               => 40,
             SignatureType::ECDSA_SHA256_P256      => 64,
@@ -205,62 +165,9 @@ impl Signature {
             SignatureType::EdDSA_SHA512_Ed25519ph => 64
         }
     }
-
-    fn from_bytes(sigtype: SignatureType, bytes: &[u8]) -> Option<Signature> {
-        if Self::signature_length(sigtype) == bytes.len() {
-            let data: Vec<u8> = bytes.iter().map(|c: &u8| *c).collect();
-
-            let key = Signature {
-                sigtype: sigtype,
-                data: data
-            };
-
-            Some(key)
-        } else {
-            None
-        }
-    }
-
-    fn as_slice(&self) -> &[u8] {
-        self.data.as_ref()
-    }
 }
 
-impl Default for Signature {
-    fn default() -> Signature {
-        let sigtype = SignatureType::DSA_SHA1;
-        let mut data = Vec::with_capacity(Signature::signature_length(sigtype));
-        for _ in 0..data.capacity() {
-            data.push(0x00);
-        }
-
-        Signature {
-            sigtype: sigtype,
-            data: data
-        }
-    }
-}
-
-impl fmt::Display for Signature {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        fn config() -> base64::Config {
-            base64::Config {
-                char_set: base64::CharacterSet::Standard,
-                newline: base64::Newline::LF,
-                pad: false,
-                line_length: None
-            }
-        }
-
-        write!(f, "{}", self.as_slice().to_base64(config()))
-    }
-}
-
-impl AsRef<[u8]> for Signature {
-    fn as_ref(&self) -> &[u8] {
-        self.as_slice()
-    }
-}
+data_structure_impl!(Signature);
 
 #[cfg(test)]
 mod tests {
