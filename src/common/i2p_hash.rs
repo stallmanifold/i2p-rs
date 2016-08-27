@@ -16,6 +16,12 @@ pub trait Hashable256 {
     fn hash_sha256(&self) -> Hash256;
 }
 
+impl Hashable256 for Hash256 {
+    fn hash_sha256(&self) -> Hash256 {
+        self.clone()
+    }
+}
+
 #[cfg(test)]
 mod tests {
 

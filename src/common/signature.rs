@@ -4,30 +4,44 @@ use rustc_serialize::base64::ToBase64;
 use rustc_serialize::base64;
 
 
+/// Describes the key type contained in the key certificate. As of I2P Router
+/// version 0.9.12, the default type is DSA_SHA1, with other types being supported.
 #[allow(non_camel_case_types)]
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum SignatureType {
+    /// Legacy Router Identities and Destinations
     DSA_SHA1,
+    /// Recent Destinations
     ECDSA_SHA256_P256,
+    /// Rarely used for Destinations
     ECDSA_SHA384_P384,
+    /// Rarely used for Destinations
     ECDSA_SHA512_P521,
+    /// Offline signing, never used for Router Identities or Destinations
     RSA_SHA256_2048,
+    /// Offline signing, never used for Router Identities or Destinations
     RSA_SHA384_3072,
+    /// Offline signing, never used for Router Identities or Destinations
     RSA_SHA512_4096,
+    /// Recent Router Identities and Destinations
     EdDSA_SHA512_Ed25519,
+    /// Offline signing, never used for Router Identities or Destinations
     EdDSA_SHA512_Ed25519ph
 }
 
-// The macro invocation chain occurs as follows:
-// data_structure_def!(TypeName);
-//
-// impl SigningLength for TypeName {
-//     fn signing_length(sigtype: SignatureType) -> usize {
-//         ...
-//     }
-// }
-//
-// data_structure_impl!(TypeName);
+/// The macro invocation chain occurs as follows:
+/// ```
+/// data_structure_def!(TypeName);
+///
+/// impl SigningLength for TypeName {
+///     fn signing_length(sigtype: SignatureType) -> usize {
+///         ...
+///     }
+/// }
+///
+/// data_structure_impl!(TypeName);
+/// ```
+/// The `data_structure_def` macro defines a signature data structure.
 macro_rules! data_structure_def {
     ($TYPE_NAME:ident) => {
         #[derive(Clone, PartialEq, Eq, Debug)]
@@ -38,10 +52,14 @@ macro_rules! data_structure_def {
     }
 }
 
+/// The `SigningLength` trait determines the length of a signature or signing key
+/// for verifying and creating digital signatures.
 trait SigningLength {
     fn signing_length(sigtype: SignatureType) -> usize;
 }
 
+/// The `data_structure_impl` macro defines the common functionality common to all digital
+/// signature structures used in the I2P specification.
 macro_rules! data_structure_impl {
     ($TYPE_NAME:ident) => {
         impl $TYPE_NAME {
@@ -144,6 +162,7 @@ macro_rules! data_structure_impl {
     }
 }
 
+/// The `SigningPublicKey` strucutre is used for verifying signatures.
 data_structure_def!(SigningPublicKey);
 
 impl SigningLength for SigningPublicKey {
@@ -163,6 +182,7 @@ impl SigningLength for SigningPublicKey {
 }
 data_structure_impl!(SigningPublicKey);
 
+/// The `SigningPrivateKey` strucutre is used for creating signatures.
 data_structure_def!(SigningPrivateKey);
 
 impl SigningLength for SigningPrivateKey {
@@ -182,6 +202,7 @@ impl SigningLength for SigningPrivateKey {
 }
 data_structure_impl!(SigningPrivateKey);
 
+/// The `Signature` structure represents the digital signature of some data.
 data_structure_def!(Signature);
 
 impl SigningLength for Signature {

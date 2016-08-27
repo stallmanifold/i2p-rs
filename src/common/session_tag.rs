@@ -18,8 +18,3 @@ impl rand::Rand for SessionTag {
         SessionTag::new(data)
     }
 }
-
-#[cfg(test)]
-mod tests {
-
-}
