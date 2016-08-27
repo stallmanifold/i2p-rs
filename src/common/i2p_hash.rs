@@ -1,4 +1,5 @@
 use std::fmt;
+use std::fmt::Write;
 use rustc_serialize::base64::ToBase64;
 use rustc_serialize::base64;
 
@@ -6,18 +7,18 @@ use rustc_serialize::base64;
 const I2P_SHA256_HASH_LENGTH: usize = 32;
 
 #[derive(Eq, Copy)]
-pub struct I2pHash {
+pub struct Hash256 {
     data: [u8; I2P_SHA256_HASH_LENGTH]
 }
 
-impl I2pHash {
-    fn new(data: [u8; I2P_SHA256_HASH_LENGTH]) -> I2pHash {
-        I2pHash {
+impl Hash256 {
+    fn new(data: [u8; I2P_SHA256_HASH_LENGTH]) -> Hash256 {
+        Hash256 {
             data: data
         }
     }
 
-    /// Returns the length of an `I2pHash` in bytes.
+    /// Returns the length of an `Hash256` in bytes.
     pub fn len(&self) -> usize {
         I2P_SHA256_HASH_LENGTH
     }
@@ -27,25 +28,25 @@ impl I2pHash {
     }
 }
 
-impl Default for I2pHash {
-    fn default() -> I2pHash {
-        I2pHash::new([0x00; I2P_SHA256_HASH_LENGTH])
+impl Default for Hash256 {
+    fn default() -> Hash256 {
+        Hash256::new([0x00; I2P_SHA256_HASH_LENGTH])
     }
 }
 
-impl Clone for I2pHash {
-    fn clone(&self) -> I2pHash {
+impl Clone for Hash256 {
+    fn clone(&self) -> Hash256 {
         let mut cloned_hash = [0x00; I2P_SHA256_HASH_LENGTH];
         for i in 0..self.len() {
             cloned_hash[i] = self.data[i];
         }
 
-        I2pHash::new(cloned_hash)
+        Hash256::new(cloned_hash)
     }
 }
 
-impl PartialEq for I2pHash {
-    fn eq(&self, other: &I2pHash) -> bool {
+impl PartialEq for Hash256 {
+    fn eq(&self, other: &Hash256) -> bool {
         for i in 0..self.len() {
             if self.data[i] != other.data[i] {
                 return false;
@@ -56,24 +57,24 @@ impl PartialEq for I2pHash {
     }
 }
 
-impl From<[u8; I2P_SHA256_HASH_LENGTH]> for I2pHash {
-    fn from(data: [u8; I2P_SHA256_HASH_LENGTH]) -> I2pHash {
-        I2pHash::new(data)
+impl From<[u8; I2P_SHA256_HASH_LENGTH]> for Hash256 {
+    fn from(data: [u8; I2P_SHA256_HASH_LENGTH]) -> Hash256 {
+        Hash256::new(data)
     }
 }
 
-impl<'a> From<&'a [u8; I2P_SHA256_HASH_LENGTH]> for I2pHash {
-    fn from(data: &'a [u8; I2P_SHA256_HASH_LENGTH]) -> I2pHash {
+impl<'a> From<&'a [u8; I2P_SHA256_HASH_LENGTH]> for Hash256 {
+    fn from(data: &'a [u8; I2P_SHA256_HASH_LENGTH]) -> Hash256 {
         let mut cloned_data = [0x00; I2P_SHA256_HASH_LENGTH];
         for i in 0..data.len() {
             cloned_data[i] = data[i];
         }
 
-        I2pHash::new(cloned_data)
+        Hash256::new(cloned_data)
     }
 }
 
-impl fmt::Display for I2pHash {
+impl fmt::Display for Hash256 {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         fn config() -> base64::Config {
             base64::Config {
@@ -88,14 +89,47 @@ impl fmt::Display for I2pHash {
     }
 }
 
-impl AsRef<[u8]> for I2pHash {
+impl fmt::LowerHex for Hash256 {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let mut output = String::new();
+        for byte in self.as_ref() {
+            write!(output, "{:x}", byte);
+        }
+
+        write!(f, "{}", output)
+    }
+}
+
+impl fmt::UpperHex for Hash256 {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let mut output = String::new();
+        for byte in self.as_ref() {
+            write!(output, "{:X}", byte);
+        }
+
+        write!(f, "{}", output)
+    }
+}
+
+impl fmt::Binary for Hash256 {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let mut output = String::new();
+        for byte in self.as_ref() {
+            write!(output, "{:b}", byte);
+        }
+
+        write!(f, "{}", output)
+    }
+}
+
+impl AsRef<[u8]> for Hash256 {
     fn as_ref(&self) -> &[u8] {
         self.as_slice()
     }
 }
 
 pub trait Hashable {
-    fn hash(&self) -> I2pHash;
+    fn hash(&self) -> Hash256;
 }
 
 
