@@ -1,4 +1,5 @@
 use std::fmt;
+use std::fmt::Write;
 use rustc_serialize::base64::ToBase64;
 use rustc_serialize::base64;
 
@@ -20,6 +21,19 @@ impl SessionKey {
     /// Returns the length of a `SessionKey` in bytes.
     pub fn len(&self) -> usize {
         I2P_SESSION_KEY_LENGTH
+    }
+
+    fn from_slice(slice: &[u8]) -> Option<SessionKey> {
+        if slice.len() <= I2P_SESSION_KEY_LENGTH {
+            let mut key_bytes = [0x00; I2P_SESSION_KEY_LENGTH];
+            let offset = I2P_SESSION_KEY_LENGTH - slice.len();
+            for i in 0..slice.len() {
+                key_bytes[i + offset] = slice[i];
+            }
+            Some(SessionKey::new(key_bytes))
+        } else {
+            None
+        }
     }
 
     fn as_slice(&self) -> &[u8] {
@@ -88,11 +102,45 @@ impl fmt::Display for SessionKey {
     }
 }
 
+impl fmt::LowerHex for SessionKey {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let mut output = String::new();
+        for byte in self.as_ref() {
+            write!(output, "{:02x}", byte);
+        }
+
+        write!(f, "{}", output)
+    }
+}
+
+impl fmt::UpperHex for SessionKey {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let mut output = String::new();
+        for byte in self.as_ref() {
+            write!(output, "{:02X}", byte);
+        }
+
+        write!(f, "{}", output)
+    }
+}
+
+impl fmt::Binary for SessionKey {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let mut output = String::new();
+        for byte in self.as_ref() {
+            write!(output, "{:08b}", byte);
+        }
+
+        write!(f, "{}", output)
+    }
+}
+
 impl AsRef<[u8]> for SessionKey {
     fn as_ref(&self) -> &[u8] {
         self.as_slice()
     }
 }
+
 
 #[cfg(test)]
 mod tests {

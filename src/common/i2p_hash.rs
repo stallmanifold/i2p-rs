@@ -23,6 +23,19 @@ impl Hash256 {
         I2P_SHA256_HASH_LENGTH
     }
 
+    fn from_slice(slice: &[u8]) -> Option<Hash256> {
+        if slice.len() <= I2P_SHA256_HASH_LENGTH {
+            let mut key_bytes = [0x00; I2P_SHA256_HASH_LENGTH];
+            let offset = I2P_SHA256_HASH_LENGTH - slice.len();
+            for i in 0..slice.len() {
+                key_bytes[i + offset] = slice[i];
+            }
+            Some(Hash256::new(key_bytes))
+        } else {
+            None
+        }
+    }
+
     fn as_slice(&self) -> &[u8] {
         self.data.as_ref()
     }
@@ -93,7 +106,7 @@ impl fmt::LowerHex for Hash256 {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let mut output = String::new();
         for byte in self.as_ref() {
-            write!(output, "{:x}", byte);
+            write!(output, "{:02x}", byte);
         }
 
         write!(f, "{}", output)
@@ -104,7 +117,7 @@ impl fmt::UpperHex for Hash256 {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let mut output = String::new();
         for byte in self.as_ref() {
-            write!(output, "{:X}", byte);
+            write!(output, "{:02X}", byte);
         }
 
         write!(f, "{}", output)
@@ -115,7 +128,7 @@ impl fmt::Binary for Hash256 {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let mut output = String::new();
         for byte in self.as_ref() {
-            write!(output, "{:b}", byte);
+            write!(output, "{:08b}", byte);
         }
 
         write!(f, "{}", output)
@@ -126,10 +139,6 @@ impl AsRef<[u8]> for Hash256 {
     fn as_ref(&self) -> &[u8] {
         self.as_slice()
     }
-}
-
-pub trait Hashable {
-    fn hash(&self) -> Hash256;
 }
 
 

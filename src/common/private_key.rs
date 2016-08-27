@@ -103,8 +103,48 @@ impl fmt::Display for PrivateKey {
     }
 }
 
+impl fmt::LowerHex for PrivateKey {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let mut output = String::new();
+        for byte in self.as_ref() {
+            write!(output, "{:02x}", byte);
+        }
+
+        write!(f, "{}", output)
+    }
+}
+
+impl fmt::UpperHex for PrivateKey {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let mut output = String::new();
+        for byte in self.as_ref() {
+            write!(output, "{:02X}", byte);
+        }
+
+        write!(f, "{}", output)
+    }
+}
+
+impl fmt::Binary for PrivateKey {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let mut output = String::new();
+        for byte in self.as_ref() {
+            write!(output, "{:08b}", byte);
+        }
+
+        write!(f, "{}", output)
+    }
+}
+
+
 impl AsRef<[u8]> for PrivateKey {
     fn as_ref(&self) -> &[u8] {
         self.as_slice()
     }
+}
+
+
+#[cfg(test)]
+mod tests {
+
 }
