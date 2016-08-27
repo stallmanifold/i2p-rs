@@ -10,6 +10,9 @@ const I2P_SHA256_HASH_LENGTH: usize = 32;
 
 simple_data_structure!(Hash256, I2P_SHA256_HASH_LENGTH);
 
+pub trait Hashable {
+    fn hash_sha256(&self) -> Hash256;
+}
 
 #[cfg(test)]
 mod tests {
