@@ -4,6 +4,8 @@
 //use rustc_serialize::base64;
 
 
+/// The `simple_data_structure` macro is a typeclass describing structures that
+/// are composed of fixed-length arrays.
 macro_rules! simple_data_structure {
     ($TYPE_NAME:ident, $ARRAY_LENGTH:expr) => {
         #[derive(Copy, Eq)]
