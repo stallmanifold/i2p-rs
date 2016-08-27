@@ -1,7 +1,7 @@
-use std::fmt;
-use std::fmt::Write;
-use rustc_serialize::base64::ToBase64;
-use rustc_serialize::base64;
+//use std::fmt;
+//use std::fmt::Write;
+//use rustc_serialize::base64::ToBase64;
+//use rustc_serialize::base64;
 
 
 macro_rules! simple_data_structure {
@@ -23,12 +23,12 @@ macro_rules! simple_data_structure {
                 $ARRAY_LENGTH
             }
 
-            fn from_slice(slice: &[u8]) -> Option<$TYPE_NAME> {
-                if slice.len() <= $ARRAY_LENGTH {
+            fn from_bytes(bytes: &[u8]) -> Option<$TYPE_NAME> {
+                if bytes.len() <= $ARRAY_LENGTH {
                     let mut key_bytes = [0x00; $ARRAY_LENGTH];
-                    let offset = $ARRAY_LENGTH - slice.len();
-                    for i in 0..slice.len() {
-                        key_bytes[i + offset] = slice[i];
+                    let offset = $ARRAY_LENGTH - bytes.len();
+                    for i in 0..bytes.len() {
+                        key_bytes[i + offset] = bytes[i];
                     }
                     Some($TYPE_NAME::new(key_bytes))
                 } else {
@@ -106,7 +106,7 @@ macro_rules! simple_data_structure {
             fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
                 let mut output = String::new();
                 for byte in self.as_ref() {
-                    write!(output, "{:02x}", byte);
+                    write!(output, "{:02x}", byte).unwrap();
                 }
 
                 write!(f, "{}", output)
@@ -117,7 +117,7 @@ macro_rules! simple_data_structure {
             fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
                 let mut output = String::new();
                 for byte in self.as_ref() {
-                    write!(output, "{:02X}", byte);
+                    write!(output, "{:02X}", byte).unwrap();
                 }
 
                 write!(f, "{}", output)
@@ -128,7 +128,7 @@ macro_rules! simple_data_structure {
             fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
                 let mut output = String::new();
                 for byte in self.as_ref() {
-                    write!(output, "{:08b}", byte);
+                    write!(output, "{:08b}", byte).unwrap();
                 }
 
                 write!(f, "{}", output)

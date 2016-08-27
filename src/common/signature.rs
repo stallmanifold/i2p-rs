@@ -1,4 +1,5 @@
 use std::fmt;
+use std::fmt::Write;
 use rustc_serialize::base64::ToBase64;
 use rustc_serialize::base64;
 
@@ -28,9 +29,9 @@ pub enum SignatureType {
 //
 // data_structure_impl!(TypeName);
 macro_rules! data_structure_def {
-    ($type_name:ident) => {
+    ($TYPE_NAME:ident) => {
         #[derive(Clone, PartialEq, Eq, Debug)]
-        pub struct $type_name {
+        pub struct $TYPE_NAME {
             sigtype: SignatureType,
             data: Vec<u8>
         }
@@ -42,25 +43,25 @@ trait SigningLength {
 }
 
 macro_rules! data_structure_impl {
-    ($type_name:ident) => {
-        impl $type_name {
-            fn new(sigtype: SignatureType) -> $type_name {
+    ($TYPE_NAME:ident) => {
+        impl $TYPE_NAME {
+            fn new(sigtype: SignatureType) -> $TYPE_NAME {
                 let mut data: Vec<u8> = Vec::with_capacity(Self::signing_length(sigtype));
                 for _ in 0..data.capacity() {
                     data.push(0x00);
                 }
 
-                $type_name {
+                $TYPE_NAME {
                     sigtype: sigtype,
                     data: data
                 }
             }
 
-            fn from_bytes(sigtype: SignatureType, bytes: &[u8]) -> Option<$type_name> {
+            fn from_bytes(sigtype: SignatureType, bytes: &[u8]) -> Option<$TYPE_NAME> {
                 if Self::signing_length(sigtype) == bytes.len() {
                     let data: Vec<u8> = bytes.iter().map(|c: &u8| *c).collect();
 
-                    let key = $type_name {
+                    let key = $TYPE_NAME {
                         sigtype: sigtype,
                         data: data
                     };
@@ -71,7 +72,7 @@ macro_rules! data_structure_impl {
                 }
             }
 
-            /// Returns the length of a `$type_name` in bytes.
+            /// Returns the length of a `$TYPE_NAME` in bytes.
             fn len(&self) -> usize {
                 self.data.len()
             }
@@ -81,13 +82,13 @@ macro_rules! data_structure_impl {
             }
         }
 
-        impl Default for $type_name {
-            fn default() -> $type_name {
-                $type_name::new(SignatureType::DSA_SHA1)
+        impl Default for $TYPE_NAME {
+            fn default() -> $TYPE_NAME {
+                $TYPE_NAME::new(SignatureType::DSA_SHA1)
             }
         }
 
-        impl fmt::Display for $type_name {
+        impl fmt::Display for $TYPE_NAME {
             fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
                 fn config() -> base64::Config {
                     base64::Config {
@@ -102,7 +103,40 @@ macro_rules! data_structure_impl {
             }
         }
 
-        impl AsRef<[u8]> for $type_name {
+        impl fmt::LowerHex for $TYPE_NAME {
+            fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+                let mut output = String::new();
+                for byte in self.as_ref() {
+                    write!(output, "{:02x}", byte).unwrap();
+                }
+
+                write!(f, "{}", output)
+            }
+        }
+
+        impl fmt::UpperHex for $TYPE_NAME {
+            fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+                let mut output = String::new();
+                for byte in self.as_ref() {
+                    write!(output, "{:02X}", byte).unwrap();
+                }
+
+                write!(f, "{}", output)
+            }
+        }
+
+        impl fmt::Binary for $TYPE_NAME {
+            fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+                let mut output = String::new();
+                for byte in self.as_ref() {
+                    write!(output, "{:08b}", byte).unwrap();
+                }
+
+                write!(f, "{}", output)
+            }
+        }
+
+        impl AsRef<[u8]> for $TYPE_NAME {
             fn as_ref(&self) -> &[u8] {
                 self.as_slice()
             }

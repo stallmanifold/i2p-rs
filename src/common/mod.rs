@@ -11,7 +11,7 @@ pub use self::i2p_integer::I2pInt56;
 pub use self::i2p_integer::I2pInt64;
 pub use self::public_key::PublicKey;
 pub use self::private_key::PrivateKey;
-//pub use self::i2p_hash::Hash256;
+pub use self::i2p_hash::Hash256;
 pub use self::session_key::SessionKey;
 pub use self::session_tag::SessionTag;
 pub use self::signature::SigningPublicKey;
