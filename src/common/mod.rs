@@ -17,6 +17,7 @@ pub use self::session_tag::SessionTag;
 pub use self::signature::SigningPublicKey;
 pub use self::signature::SigningPrivateKey;
 pub use self::signature::Signature;
+pub use self::certificate::Certificate;
 
 
 mod i2p_integer;
@@ -31,5 +32,5 @@ mod public_key;
 mod private_key;
 mod session_key;
 mod session_tag;
-
 mod signature;
+mod certificate;
