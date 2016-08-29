@@ -6,7 +6,7 @@ use std::ops::{Shl, Shr};
 use std::ops::{AddAssign, SubAssign, MulAssign, DivAssign, RemAssign};
 use std::ops::{BitAndAssign, BitOrAssign, BitXorAssign, ShlAssign, ShrAssign};
 use std::cmp::{PartialOrd, Ord, Ordering};
-use util::byte_order;
+use endian::byteorder;
 use rand;
 
 
@@ -101,7 +101,7 @@ impl<I> I2pInteger<I> where I: I2pIntSize + I2pIntMask {
             result = result | (*byte as u64);
         }
 
-        if byte_order::is_big_endian() {
+        if byteorder::is_big_endian() {
             result = result.swap_bytes();
         }
 
