@@ -7,7 +7,8 @@ pub enum Error {
     // The buffer is too small. The first field is the needed number of bytes in the buffer,
     // the second field is the available amount of bytes in the buffer.
     BufferTooSmall(BufferSize, BufferSize),
-    OtherError(String)
+    EncodingError(String),
+    DecodingError(String),
 }
 
 impl Error {

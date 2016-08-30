@@ -42,6 +42,25 @@ impl I2pString {
         I2P_MAX_STRING_LENGTH
     }
 
+    /// Returns a new I2pString from a moved vector.
+    fn from_vec(vec: Vec<u8>) -> Result<I2pString, I2pStringError> {
+        if vec.len() <= I2P_MAX_STRING_LENGTH {
+            let data = match String::from_utf8(vec) {
+                Ok(string) => string,
+                Err(_) => return Err(I2pStringError::InvalidUtf8)
+            };
+
+            let i2p_string = I2pString {
+                length: data.len(),
+                data: data
+            };
+
+            Ok(i2p_string)
+        } else {
+            Err(I2pStringError::NotEnoughCapacity(vec.len(), I2P_MAX_STRING_LENGTH))
+        }
+    }
+
     pub fn from_utf8(slice: &[u8]) -> Result<I2pString, I2pStringError> {
         if slice.len() <= I2P_MAX_STRING_LENGTH {
             let str_slice = str::from_utf8(slice);
@@ -166,14 +185,45 @@ impl rand::Rand for I2pString {
 impl serialize::Serialize for I2pString {
     fn serialize(&self, buf: &mut [u8]) -> Result<usize, serialize::Error> {
         // If the data fits inside the buffer, write to it.
-        if self.len() <= buf.len() {
+        if self.len() < buf.len() {
             let str_data = self.as_bytes();
-            for i in 0..self.len() {
+            buf[0] = self.len() as u8;
+            for i in 1..self.len()+1 {
                 buf[i] = str_data[i];
             }
             Ok(self.len())
         } else {
-            Err(serialize::Error::buffer_too_small(self.len(), buf.len()))
+            Err(serialize::Error::buffer_too_small(self.len()+1, buf.len()))
+        }
+    }
+}
+
+impl serialize::Deserialize for I2pString {
+    type Output = I2pString;
+
+    fn deserialize(buf: &[u8]) -> Result<I2pString, serialize::Error> {
+        // The number of bytes in an I2pString follows the first byte.
+        if buf.is_empty() {
+            return Err(serialize::Error::buffer_too_small(1, buf.len()));
+        }
+
+        let nbytes = buf[0] as usize;
+        if buf.len() > nbytes {
+            let mut data: Vec<u8> = Vec::with_capacity(I2P_MAX_STRING_LENGTH);
+            for i in 1..nbytes+1 {
+                data.push(buf[i]);
+            }
+
+            let i2p_string = match I2pString::from_vec(data) {
+                Ok(string) => string,
+                Err(_) => {
+                    return Err(serialize::Error::DecodingError(String::from("Invalid UTF8 data.")));
+                }
+            };
+
+            Ok(i2p_string)
+        } else {
+            Err(serialize::Error::buffer_too_small(nbytes, buf.len()))
         }
     }
 }
