@@ -6,7 +6,7 @@ extern crate rustc_serialize;
 
 
 pub mod common;
-mod endian;
+mod serialize;
 
 
 #[cfg(test)]

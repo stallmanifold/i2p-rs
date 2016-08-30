@@ -9,7 +9,7 @@ pub enum ByteOrder {
 }
 
 impl fmt::Display for ByteOrder {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt:: Result {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
             ByteOrder::BigEndian    => write!(f, "Big Endian"),
             ByteOrder::LittleEndian => write!(f, "Little Endian"),

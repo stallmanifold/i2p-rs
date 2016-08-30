@@ -6,7 +6,7 @@ use std::ops::{Shl, Shr};
 use std::ops::{AddAssign, SubAssign, MulAssign, DivAssign, RemAssign};
 use std::ops::{BitAndAssign, BitOrAssign, BitXorAssign, ShlAssign, ShrAssign};
 use std::cmp::{PartialOrd, Ord, Ordering};
-use endian::byteorder;
+use serialize::byteorder;
 use rand;
 
 
