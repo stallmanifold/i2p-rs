@@ -159,3 +159,23 @@ macro_rules! simple_data_structure_serialize_impl {
         }
     }
 }
+
+macro_rules! simple_data_structure_deserialize_impl {
+    ($TYPE_NAME:ident, $ARRAY_LENGTH:expr) => {
+        impl serialize::Deserialize for $TYPE_NAME {
+            type Output = $TYPE_NAME;
+
+            fn deserialize(buf: &[u8]) -> Result<Self::Output, serialize::Error> {
+                if buf.len() >= $ARRAY_LENGTH {
+                    let mut data = [0x00; $ARRAY_LENGTH];
+                    for i in 0..data.len() {
+                        data[i] = buf[i];
+                    }
+                    Ok($TYPE_NAME::new(data))
+                } else {
+                    Err(serialize::Error::buffer_too_small($ARRAY_LENGTH, buf.len()))
+                }
+            }
+        }
+    }
+}
