@@ -13,7 +13,17 @@ use rand;
 
 pub const I2P_INTEGER_SIZE: usize = 8;
 
-pub trait I2pIntSize: Clone + Copy + Eq + PartialEq {}
+pub trait I2pIntSize: Clone + Copy + Eq + PartialEq {
+    fn len(&self) -> usize;
+}
+
+macro_rules! i2p_int_size_impl {
+    ($TYPE_NAME:ty, $LENGTH:expr) => {
+        impl I2pIntSize for $TYPE_NAME {
+            fn len(&self) -> usize { $LENGTH }
+        }
+    }
+}
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct _1 {}
@@ -32,14 +42,40 @@ pub struct _7 {}
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct _8 {}
 
-impl I2pIntSize for _1 {}
-impl I2pIntSize for _2 {}
-impl I2pIntSize for _3 {}
-impl I2pIntSize for _4 {}
-impl I2pIntSize for _5 {}
-impl I2pIntSize for _6 {}
-impl I2pIntSize for _7 {}
-impl I2pIntSize for _8 {}
+i2p_int_size_impl!(_1, 1);
+i2p_int_size_impl!(_2, 2);
+i2p_int_size_impl!(_3, 3);
+i2p_int_size_impl!(_4, 4);
+i2p_int_size_impl!(_5, 5);
+i2p_int_size_impl!(_6, 6);
+i2p_int_size_impl!(_7, 7);
+i2p_int_size_impl!(_8, 8);
+/*
+impl I2pIntSize for _1 {
+    fn len(&self) -> usize { 1 }
+}
+impl I2pIntSize for _2 {
+    fn len(&self) -> usize { 2 }
+}
+impl I2pIntSize for _3 {
+    fn len(&self) -> usize { 3 }
+}
+impl I2pIntSize for _4 {
+    fn len(&self) -> usize { 4 }
+}
+impl I2pIntSize for _5 {
+    fn len(&self) -> usize { 5 }
+}
+impl I2pIntSize for _6 {
+    fn len(&self) -> usize { 6 }
+}
+impl I2pIntSize for _7 {
+    fn len(&self) -> usize { 7 }
+}
+impl I2pIntSize for _8 {
+    fn len(&self) -> usize { 8 }
+}
+*/
 
 pub trait I2pIntMask {
     fn mask() -> u64;
