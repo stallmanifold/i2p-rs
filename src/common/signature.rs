@@ -2,6 +2,7 @@ use std::fmt;
 use std::fmt::Write;
 use rustc_serialize::base64::ToBase64;
 use rustc_serialize::base64;
+use serialize;
 
 
 /// Describes the key type contained in the key certificate. As of I2P Router
@@ -162,6 +163,24 @@ macro_rules! data_structure_impl {
     }
 }
 
+macro_rules! data_structure_serialize_impl {
+    ($TYPE_NAME:ty) => {
+        impl serialize::Serialize for $TYPE_NAME {
+            fn serialize(&self, buf: &mut [u8]) -> Result<usize, serialize::Error> {
+                if self.len() <= buf.len() {
+                    let bytes = self.as_ref();
+                    for i in 0..self.len() {
+                        buf[i] = bytes[i];
+                    }
+                    Ok(self.len())
+                } else {
+                    Err(serialize::Error::buffer_too_small(self.len(), buf.len()))
+                }
+            }
+        }
+    }
+}
+
 /// The `SigningPublicKey` strucutre is used for verifying signatures.
 data_structure_def!(SigningPublicKey);
 
@@ -181,6 +200,7 @@ impl SigningLength for SigningPublicKey {
     }
 }
 data_structure_impl!(SigningPublicKey);
+data_structure_serialize_impl!(SigningPublicKey);
 
 /// The `SigningPrivateKey` strucutre is used for creating signatures.
 data_structure_def!(SigningPrivateKey);
@@ -201,6 +221,7 @@ impl SigningLength for SigningPrivateKey {
     }
 }
 data_structure_impl!(SigningPrivateKey);
+data_structure_serialize_impl!(SigningPrivateKey);
 
 /// The `Signature` structure represents the digital signature of some data.
 data_structure_def!(Signature);
@@ -221,6 +242,8 @@ impl SigningLength for Signature {
     }
 }
 data_structure_impl!(Signature);
+data_structure_serialize_impl!(Signature);
+
 
 #[cfg(test)]
 mod tests {

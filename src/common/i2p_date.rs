@@ -5,8 +5,10 @@ use chrono::offset::utc;
 use std::fmt;
 use std::u64;
 use rand;
+use serialize;
 
 
+const I2P_DATE_LENGTH_BYTES: usize = 8;
 /// The `Date` type counts the number of milliseconds since January 1, 1970 (UNIX time)
 /// in the GMT timezone. If the number is 0, the date is undefined or null.
 ///
@@ -69,6 +71,21 @@ impl rand::Rand for I2pDate {
         let random_date = I2pInt64::new(rng.next_u64());
 
         I2pDate::new(random_date)
+    }
+}
+
+impl serialize::Serialize for I2pDate {
+    fn serialize(&self, buf: &mut [u8]) -> Result<usize, serialize::Error> {
+        if buf.len() >= I2P_DATE_LENGTH_BYTES {
+            let bytes = self.milliseconds.to_bytes_be();
+            let byte_slice: &[u8] = bytes.as_ref();
+            for i in 0..buf.len() {
+                buf[i] = byte_slice[i];
+            }
+            Ok(byte_slice.len())
+        } else {
+            Err(serialize::Error::buffer_too_small(I2P_DATE_LENGTH_BYTES, buf.len()))
+        }
     }
 }
 

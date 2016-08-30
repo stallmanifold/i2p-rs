@@ -1,6 +1,7 @@
 use std::convert::From;
 use std::str;
 use std::fmt;
+use serialize;
 use rand;
 
 
@@ -8,7 +9,7 @@ pub const I2P_MAX_STRING_LENGTH: usize = 255;
 
 /// The `I2pString` type represents a UTF-8 encoded string.
 /// An `I2pString` has length at most 255 bytes. It may have a length of 0.
-// The length of an I2pString includes the leading byte describing the length of the string.
+/// The length of an I2pString includes the leading byte describing the length of the string.
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub struct I2pString {
     length: usize,
@@ -31,7 +32,7 @@ impl I2pString {
         }
     }
 
-    /// Return the length of the string, in bytes.
+    /// Returns the length of the string, in bytes.
     pub fn len(&self) -> usize {
         self.length
     }
@@ -159,6 +160,21 @@ impl rand::Rand for I2pString {
         }
 
         I2pString::from_str(string.as_str()).unwrap()
+    }
+}
+
+impl serialize::Serialize for I2pString {
+    fn serialize(&self, buf: &mut [u8]) -> Result<usize, serialize::Error> {
+        // If the data fits inside the buffer, write to it.
+        if self.len() <= buf.len() {
+            let str_data = self.as_bytes();
+            for i in 0..self.len() {
+                buf[i] = str_data[i];
+            }
+            Ok(self.len())
+        } else {
+            Err(serialize::Error::buffer_too_small(self.len(), buf.len()))
+        }
     }
 }
 

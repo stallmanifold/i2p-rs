@@ -8,6 +8,7 @@ const I2P_SHA256_HASH_LENGTH: usize = 32;
 
 /// A `Hash256` type represents the SHA256 hash of some data.
 simple_data_structure!(Hash256, I2P_SHA256_HASH_LENGTH);
+simple_data_structure_serialize_impl!(Hash256);
 
 /// The trait `Hashable256` is an interface for generating a SHA256 hash of
 /// a piece of data.
