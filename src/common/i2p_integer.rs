@@ -171,6 +171,30 @@ impl<I> serialize::Serialize for I2pInteger<I> where I: I2pIntSize + I2pIntMask 
     }
 }
 
+impl<I> serialize::Deserialize for I2pInteger<I> where I: I2pIntSize + I2pIntMask {
+    type Output = I2pInteger<I>;
+
+    fn deserialize(buf: &[u8]) -> Result<I2pInteger<I>, serialize::Error> {
+        if I::len() <= buf.len() {
+            let mask = <I as I2pIntMask>::mask();
+            let mut result: u64 = 0x00;
+
+            for i in 0..I::len() {
+                result <<= 8;
+                result = result | (buf[i] as u64);
+            }
+
+            if byteorder::is_big_endian() {
+                result = result.swap_bytes();
+            }
+
+            Ok(I2pInteger::new(result & mask))
+        } else {
+            Err(serialize::Error::buffer_too_small(I::len(), buf.len()))
+        }
+    }
+}
+
 
 macro_rules! primitive_int_type_to_i2p_int_from_impl {
     ( $ T : ty ) => {

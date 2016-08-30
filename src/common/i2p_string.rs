@@ -50,6 +50,10 @@ impl I2pString {
                 Err(_) => return Err(I2pStringError::InvalidUtf8)
             };
 
+            if data.len() > I2P_MAX_STRING_LENGTH {
+                return Err(I2pStringError::InvalidUtf8);
+            }
+
             let i2p_string = I2pString {
                 length: data.len(),
                 data: data
@@ -202,14 +206,15 @@ impl serialize::Deserialize for I2pString {
     type Output = I2pString;
 
     fn deserialize(buf: &[u8]) -> Result<I2pString, serialize::Error> {
-        // The number of bytes in an I2pString follows the first byte.
         if buf.is_empty() {
             return Err(serialize::Error::buffer_too_small(1, buf.len()));
         }
 
+        // The first byte of an I2P String is the number of UTF-8 characters.
         let nbytes = buf[0] as usize;
         if buf.len() > nbytes {
             let mut data: Vec<u8> = Vec::with_capacity(I2P_MAX_STRING_LENGTH);
+            // The string data follows the first byte.
             for i in 1..nbytes+1 {
                 data.push(buf[i]);
             }

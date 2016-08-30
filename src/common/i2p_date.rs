@@ -18,13 +18,29 @@ pub struct I2pDate {
 }
 
 impl I2pDate {
+    /// Creates a new I2pDate.
+    /// # Panics
+    /// When milliseconds is zero.
     pub fn new(milliseconds: I2pInt64) -> I2pDate {
-        if milliseconds == I2pInt64::from(0) {
+        if milliseconds > I2pInt64::from(0) {
+            I2pDate {
+                milliseconds: milliseconds
+            }
+        } else {
             panic!("Got a zero value for milliseconds.");
         }
+    }
 
-        I2pDate {
-            milliseconds: milliseconds
+    /// Creates a new I2pDate without panicing when milliseconds is zero.
+    pub fn checked_new(milliseconds: I2pInt64) -> Option<I2pDate> {
+        if milliseconds > I2pInt64::from(0) {
+            let i2p_date = I2pDate {
+                milliseconds: milliseconds
+            };
+
+            Some(i2p_date)
+        } else {
+            None
         }
     }
 
@@ -88,6 +104,26 @@ impl serialize::Serialize for I2pDate {
         }
     }
 }
+
+// According to the I2P spec, An I2pDate is just an 8 byte big endian
+// (network byte order) Integer.
+impl serialize::Deserialize for I2pDate {
+    type Output = I2pDate;
+
+    fn deserialize(buf: &[u8]) -> Result<I2pDate, serialize::Error> {
+        let i2p_integer = match <I2pInt64 as serialize::Deserialize>::deserialize(buf) {
+            Ok(integer) => integer,
+            Err(e) => return Err(e)
+        };
+        let i2p_date = match I2pDate::checked_new(i2p_integer) {
+            Some(integer) => integer,
+            None => return Err(serialize::Error::DecodingError(String::from("Decoding Error.")))
+        };
+
+        Ok(i2p_date)
+    }
+}
+
 
 #[cfg(test)]
 mod tests {
