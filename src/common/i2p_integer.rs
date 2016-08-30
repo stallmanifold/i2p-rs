@@ -14,13 +14,13 @@ use rand;
 pub const I2P_INTEGER_SIZE: usize = 8;
 
 pub trait I2pIntSize: Clone + Copy + Eq + PartialEq {
-    fn len(&self) -> usize;
+    fn len() -> usize;
 }
 
 macro_rules! i2p_int_size_impl {
     ($TYPE_NAME:ty, $LENGTH:expr) => {
         impl I2pIntSize for $TYPE_NAME {
-            fn len(&self) -> usize { $LENGTH }
+            fn len() -> usize { $LENGTH }
         }
     }
 }
@@ -50,32 +50,7 @@ i2p_int_size_impl!(_5, 5);
 i2p_int_size_impl!(_6, 6);
 i2p_int_size_impl!(_7, 7);
 i2p_int_size_impl!(_8, 8);
-/*
-impl I2pIntSize for _1 {
-    fn len(&self) -> usize { 1 }
-}
-impl I2pIntSize for _2 {
-    fn len(&self) -> usize { 2 }
-}
-impl I2pIntSize for _3 {
-    fn len(&self) -> usize { 3 }
-}
-impl I2pIntSize for _4 {
-    fn len(&self) -> usize { 4 }
-}
-impl I2pIntSize for _5 {
-    fn len(&self) -> usize { 5 }
-}
-impl I2pIntSize for _6 {
-    fn len(&self) -> usize { 6 }
-}
-impl I2pIntSize for _7 {
-    fn len(&self) -> usize { 7 }
-}
-impl I2pIntSize for _8 {
-    fn len(&self) -> usize { 8 }
-}
-*/
+
 
 pub trait I2pIntMask {
     fn mask() -> u64;
@@ -175,9 +150,24 @@ pub type I2pInt56 = I2pInteger<_7>;
 pub type I2pInt64 = I2pInteger<_8>;
 
 
-impl<I> fmt::Display for I2pInteger<I> where I: I2pIntSize {
+impl<I> fmt::Display for I2pInteger<I> where I: I2pIntSize + I2pIntMask {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", self.data)
+    }
+}
+
+impl<I> serialize::Serialize for I2pInteger<I> where I: I2pIntSize + I2pIntMask {
+    fn serialize(&self, buf: &mut [u8]) -> Result<usize, serialize::Error> {
+        if I::len() <= buf.len() {
+            let bytes      = self.to_bytes_be();
+            let byte_slice: &[u8] = bytes.as_ref();
+            for i in 0..byte_slice.len() {
+                buf[i] = byte_slice[i];
+            }
+            Ok(byte_slice.len())
+        } else {
+            Err(serialize::Error::buffer_too_small(I::len(), buf.len()))
+        }
     }
 }
 
