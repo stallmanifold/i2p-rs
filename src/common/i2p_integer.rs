@@ -26,21 +26,21 @@ macro_rules! i2p_int_size_impl {
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub struct _1 {}
+pub enum _1 {}
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub struct _2 {}
+pub enum _2 {}
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub struct _3 {}
+pub enum _3 {}
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub struct _4 {}
+pub enum _4 {}
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub struct _5 {}
+pub enum _5 {}
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub struct _6 {}
+pub enum _6 {}
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub struct _7 {}
+pub enum _7 {}
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub struct _8 {}
+pub enum _8 {}
 
 i2p_int_size_impl!(_1, 1);
 i2p_int_size_impl!(_2, 2);
