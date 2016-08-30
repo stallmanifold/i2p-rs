@@ -2,6 +2,8 @@
 /// are composed of fixed-length arrays.
 macro_rules! simple_data_structure {
     ($TYPE_NAME:ident, $ARRAY_LENGTH:expr) => {
+        use serialize;
+
         #[derive(Copy, Eq)]
         pub struct $TYPE_NAME {
             data: [u8; $ARRAY_LENGTH]
@@ -134,6 +136,20 @@ macro_rules! simple_data_structure {
         impl AsRef<[u8]> for $TYPE_NAME {
             fn as_ref(&self) -> &[u8] {
                 self.as_slice()
+            }
+        }
+
+        impl serialize::Serialize for $TYPE_NAME {
+            fn serialize(&self, buf: &mut [u8]) -> Result<usize, serialize::Error> {
+                // If the data fits inside the buffer, write to it.
+                if self.len() <= buf.len() {
+                    for i in 0..self.len() {
+                        buf[i] = self.data[i];
+                    }
+                    Ok(self.len())
+                } else {
+                    Err(serialize::Error::buffer_too_small(self.len(), buf.len()))
+                }
             }
         }
     }
