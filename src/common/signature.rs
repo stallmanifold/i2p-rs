@@ -30,6 +30,22 @@ pub enum SignatureType {
     EdDSA_SHA512_Ed25519ph
 }
 
+impl SignatureType {
+    /// Determines whether the SignatureType is represented as
+    /// little endian. Not all signature types are transmitted and stored in
+    /// network byte order. In particular, EdDSA_SHA512_Ed25519 and EdDSA_SHA512_Ed25519ph
+    /// are transmitted and stored in little endian format.
+    fn has_little_endian_repr(&self) -> bool {
+        match *self {
+              SignatureType::EdDSA_SHA512_Ed25519
+            | SignatureType::EdDSA_SHA512_Ed25519ph => {
+                true
+            }
+            _ => false
+        }
+    }
+}
+
 /// The macro invocation chain occurs as follows:
 /// ```
 /// data_structure_def!(TypeName);
@@ -167,12 +183,23 @@ macro_rules! data_structure_serialize_impl {
     ($TYPE_NAME:ty) => {
         impl serialize::Serialize for $TYPE_NAME {
             fn serialize(&self, buf: &mut [u8]) -> Result<usize, serialize::Error> {
-                if self.len() <= buf.len() {
+                if (self.len() <= buf.len()) && !self.sigtype.has_little_endian_repr() {
                     let bytes = self.as_ref();
                     for i in 0..self.len() {
                         buf[i] = bytes[i];
                     }
+
                     Ok(self.len())
+                // We are dealing with an EdDSA message, represented as little endian.
+                } else if (self.len() <= buf.len()) && self.sigtype.has_little_endian_repr() {
+                    let bytes = self.as_ref();
+                    let length = self.len();
+                    // Write the data to the buffer in reverse.
+                    for i in 0..length {
+                        buf[(length-1) - i] = bytes[i];
+                    }
+
+                    Ok(length)
                 } else {
                     Err(serialize::Error::buffer_too_small(self.len(), buf.len()))
                 }
