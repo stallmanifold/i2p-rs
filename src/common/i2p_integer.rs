@@ -11,7 +11,7 @@ use serialize;
 use rand;
 
 
-pub const I2P_INTEGER_SIZE: usize = 8;
+pub const I2P_INTEGER_MAX_SIZE_BYTES: usize = 8;
 
 pub trait I2pIntSize: Clone + Copy + Eq + PartialEq {
     fn len() -> usize;
@@ -101,7 +101,7 @@ impl<I> I2pInteger<I> where I: I2pIntSize + I2pIntMask {
     /// If a byte array is longer than the maximum number bytes for an I2pInteger,
     /// it return None.
     pub fn from_bytes_be(bytes: &[u8]) -> Option<I2pInteger<I>> {
-        if bytes.len() > I2P_INTEGER_SIZE {
+        if bytes.len() > I2P_INTEGER_MAX_SIZE_BYTES {
             return None;
         }
 
@@ -128,6 +128,10 @@ impl<I> I2pInteger<I> where I: I2pIntSize + I2pIntMask {
         let mut data  = self.data.to_be();
         let mask = 0xFF;
 
+        // Truncate the leading zero bytes.
+        let leading_byte_count = I2P_INTEGER_MAX_SIZE_BYTES - I::len();
+        data = data >> (8 * leading_byte_count);
+        // Push out the remaining bytes onto the byte array.
         for _ in 0..I::len() {
             let byte = (data & mask) as u8;
             data >>= 8;
@@ -135,6 +139,10 @@ impl<I> I2pInteger<I> where I: I2pIntSize + I2pIntMask {
         }
 
         bytes
+    }
+
+    pub fn len(&self) -> usize {
+        I::len()
     }
 
     pub fn to_u64(&self) -> u64 {
@@ -162,11 +170,12 @@ impl<I> fmt::Display for I2pInteger<I> where I: I2pIntSize + I2pIntMask {
 impl<I> serialize::Serialize for I2pInteger<I> where I: I2pIntSize + I2pIntMask {
     fn serialize(&self, buf: &mut [u8]) -> serialize::Result<usize> {
         if I::len() <= buf.len() {
-            let bytes      = self.to_bytes_be();
+            let bytes = self.to_bytes_be();
             let byte_slice: &[u8] = bytes.as_ref();
             for i in 0..byte_slice.len() {
                 buf[i] = byte_slice[i];
             }
+
             Ok(byte_slice.len())
         } else {
             Err(serialize::Error::buffer_too_small(I::len(), buf.len()))
