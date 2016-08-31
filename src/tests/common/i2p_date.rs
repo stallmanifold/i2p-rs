@@ -1,7 +1,6 @@
 use common::I2pDate;
 use rand::Rand;
 use quickcheck;
-use serialize::{Serialize, Deserialize};
 
 
 impl quickcheck::Arbitrary for I2pDate {
@@ -13,7 +12,6 @@ impl quickcheck::Arbitrary for I2pDate {
 mod property_tests {
     use common::I2pDate;
     use quickcheck;
-    use serialize::{Serialize, Deserialize};
 
 
     #[test]
@@ -35,7 +33,7 @@ mod serialization_tests {
     fn prop_i2p_date_serialize_deserialize_output_should_be_equal_to_input() {
         fn property(date: I2pDate) -> bool {
             let mut serialized_date: [u8; 8] = [0x00; 8];
-            Serialize::serialize(&date, serialized_date.as_mut());
+            Serialize::serialize(&date, serialized_date.as_mut()).unwrap();
             let deserialized_date = <I2pDate as Deserialize>::deserialize(serialized_date.as_ref()).unwrap();
 
             date == deserialized_date
@@ -63,10 +61,7 @@ mod serialization_tests {
         fn property(date: I2pDate) -> bool {
             let mut serialized_date: [u8; 8] = [0x00; 8];
 
-            let bytes_written = match Serialize::serialize(&date, serialized_date.as_mut()) {
-                Ok(nbytes) => nbytes,
-                Err(e) => panic!("Error: {:?}", e)
-            };
+            let bytes_written = Serialize::serialize(&date, serialized_date.as_mut()).unwrap();
 
             bytes_written == date.len()
 

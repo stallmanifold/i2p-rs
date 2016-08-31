@@ -1,7 +1,6 @@
 use std::result;
 use std::error;
 use std::fmt;
-use std::io::Write;
 
 
 #[derive(Clone, Debug)]

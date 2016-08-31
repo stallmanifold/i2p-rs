@@ -87,9 +87,9 @@ mod serialization_tests {
     fn prop_i2p_integer_serialize_deserialize_output_should_be_equal_to_input() {
         fn property(i2p_integer: I2pInt32) -> bool {
             let mut serialized_int: [u8; 4] = [0x00; 4];
-            Serialize::serialize(&i2p_integer, serialized_int.as_mut());
+            Serialize::serialize(&i2p_integer, serialized_int.as_mut()).unwrap();
             let deserialized_int = <I2pInt32 as Deserialize>::deserialize(serialized_int.as_ref()).unwrap();
-            assert_eq!(deserialized_int, i2p_integer);
+
             i2p_integer == deserialized_int
         }
         quickcheck::quickcheck(property as fn(I2pInt32) -> bool);
@@ -115,10 +115,7 @@ mod serialization_tests {
         fn property(i2p_integer: I2pInt32) -> bool {
             let mut serialized_int: [u8; 8] = [0x00; 8];
 
-            let bytes_written = match Serialize::serialize(&i2p_integer, serialized_int.as_mut()) {
-                Ok(nbytes) => nbytes,
-                Err(e) => panic!("Error: {:?}", e)
-            };
+            let bytes_written = Serialize::serialize(&i2p_integer, serialized_int.as_mut()).unwrap();
 
             bytes_written == i2p_integer.len()
 
