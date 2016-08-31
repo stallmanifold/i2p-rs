@@ -1,3 +1,6 @@
+use std::result;
+
+
 pub enum BufferSize {
     Need(usize),
     Available(usize)
@@ -17,12 +20,14 @@ impl Error {
     }
 }
 
+pub type Result<T> = result::Result<T, Error>;
+
 pub trait Serialize {
-    fn serialize(&self, buf: &mut [u8]) -> Result<usize, Error>;
+    fn serialize(&self, buf: &mut [u8]) -> Result<usize>;
 }
 
 pub trait Deserialize {
     type Output;
 
-    fn deserialize(buf: &[u8]) -> Result<Self::Output, Error>;
+    fn deserialize(buf: &[u8]) -> Result<Self::Output>;
 }

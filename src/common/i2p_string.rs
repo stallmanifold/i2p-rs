@@ -187,7 +187,7 @@ impl rand::Rand for I2pString {
 }
 
 impl serialize::Serialize for I2pString {
-    fn serialize(&self, buf: &mut [u8]) -> Result<usize, serialize::Error> {
+    fn serialize(&self, buf: &mut [u8]) -> serialize::Result<usize> {
         // If the data fits inside the buffer, write to it.
         if self.len() < buf.len() {
             let str_data = self.as_bytes();
@@ -205,7 +205,7 @@ impl serialize::Serialize for I2pString {
 impl serialize::Deserialize for I2pString {
     type Output = I2pString;
 
-    fn deserialize(buf: &[u8]) -> Result<I2pString, serialize::Error> {
+    fn deserialize(buf: &[u8]) -> serialize::Result<I2pString> {
         if buf.is_empty() {
             return Err(serialize::Error::buffer_too_small(1, buf.len()));
         }

@@ -91,7 +91,7 @@ impl rand::Rand for I2pDate {
 }
 
 impl serialize::Serialize for I2pDate {
-    fn serialize(&self, buf: &mut [u8]) -> Result<usize, serialize::Error> {
+    fn serialize(&self, buf: &mut [u8]) -> serialize::Result<usize> {
         if buf.len() >= I2P_DATE_LENGTH_BYTES {
             let bytes = self.milliseconds.to_bytes_be();
             let byte_slice: &[u8] = bytes.as_ref();
@@ -110,7 +110,7 @@ impl serialize::Serialize for I2pDate {
 impl serialize::Deserialize for I2pDate {
     type Output = I2pDate;
 
-    fn deserialize(buf: &[u8]) -> Result<I2pDate, serialize::Error> {
+    fn deserialize(buf: &[u8]) -> serialize::Result<I2pDate> {
         let i2p_integer = match <I2pInt64 as serialize::Deserialize>::deserialize(buf) {
             Ok(integer) => integer,
             Err(e) => return Err(e)

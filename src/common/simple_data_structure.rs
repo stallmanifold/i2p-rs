@@ -145,7 +145,7 @@ macro_rules! simple_data_structure_serialize_impl {
 
         // Serialize simple data structures in a big endian manner.
         impl serialize::Serialize for $TYPE_NAME {
-            fn serialize(&self, buf: &mut [u8]) -> Result<usize, serialize::Error> {
+            fn serialize(&self, buf: &mut [u8]) -> serialize::Result<usize> {
                 // If the data fits inside the buffer, write to it.
                 if self.len() <= buf.len() {
                     for i in 0..self.len() {
@@ -165,7 +165,7 @@ macro_rules! simple_data_structure_deserialize_impl {
         impl serialize::Deserialize for $TYPE_NAME {
             type Output = $TYPE_NAME;
 
-            fn deserialize(buf: &[u8]) -> Result<Self::Output, serialize::Error> {
+            fn deserialize(buf: &[u8]) -> serialize::Result<Self::Output> {
                 if buf.len() >= $ARRAY_LENGTH {
                     let mut data = [0x00; $ARRAY_LENGTH];
                     for i in 0..data.len() {

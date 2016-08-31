@@ -157,7 +157,7 @@ impl<I> fmt::Display for I2pInteger<I> where I: I2pIntSize + I2pIntMask {
 }
 
 impl<I> serialize::Serialize for I2pInteger<I> where I: I2pIntSize + I2pIntMask {
-    fn serialize(&self, buf: &mut [u8]) -> Result<usize, serialize::Error> {
+    fn serialize(&self, buf: &mut [u8]) -> serialize::Result<usize> {
         if I::len() <= buf.len() {
             let bytes      = self.to_bytes_be();
             let byte_slice: &[u8] = bytes.as_ref();
@@ -174,7 +174,7 @@ impl<I> serialize::Serialize for I2pInteger<I> where I: I2pIntSize + I2pIntMask 
 impl<I> serialize::Deserialize for I2pInteger<I> where I: I2pIntSize + I2pIntMask {
     type Output = I2pInteger<I>;
 
-    fn deserialize(buf: &[u8]) -> Result<I2pInteger<I>, serialize::Error> {
+    fn deserialize(buf: &[u8]) -> serialize::Result<I2pInteger<I>> {
         if I::len() <= buf.len() {
             let mask = <I as I2pIntMask>::mask();
             let mut result: u64 = 0x00;

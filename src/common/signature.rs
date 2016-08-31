@@ -182,7 +182,7 @@ macro_rules! data_structure_impl {
 macro_rules! data_structure_serialize_impl {
     ($TYPE_NAME:ty) => {
         impl serialize::Serialize for $TYPE_NAME {
-            fn serialize(&self, buf: &mut [u8]) -> Result<usize, serialize::Error> {
+            fn serialize(&self, buf: &mut [u8]) -> serialize::Result<usize> {
                 if (self.len() <= buf.len()) && !self.sigtype.has_little_endian_repr() {
                     let bytes = self.as_ref();
                     for i in 0..self.len() {
