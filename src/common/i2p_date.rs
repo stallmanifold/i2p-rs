@@ -122,11 +122,11 @@ impl serialize::Deserialize for I2pDate {
     fn deserialize(buf: &[u8]) -> serialize::Result<I2pDate> {
         let i2p_integer = match <I2pInt64 as serialize::Deserialize>::deserialize(buf) {
             Ok(integer) => integer,
-            Err(e) => return Err(e)
+            Err(e) => return Err(serialize::Error::DecodingError)
         };
         let i2p_date = match I2pDate::checked_new(i2p_integer) {
-            Some(integer) => integer,
-            None => return Err(serialize::Error::DecodingError(String::from("Decoding Error.")))
+            Some(date) => date,
+            None => return Err(serialize::Error::DecodingError)
         };
 
         Ok(i2p_date)

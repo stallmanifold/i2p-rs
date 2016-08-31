@@ -1,23 +1,51 @@
 use std::result;
+use std::error;
+use std::fmt;
+use std::io::Write;
 
-#[derive(Copy, Clone, Eq, PartialEq, Debug)]
-pub enum BufferSize {
-    Need(usize),
-    Available(usize)
-}
 
-#[derive(Clone, Eq, PartialEq, Debug)]
+#[derive(Clone, Debug)]
 pub enum Error {
     // The buffer is too small. The first field is the needed number of bytes in the buffer,
     // the second field is the available amount of bytes in the buffer.
-    BufferTooSmall(BufferSize, BufferSize),
-    EncodingError(String),
-    DecodingError(String),
+    BufferTooSmall(usize, usize),
+    EncodingError,
+    DecodingError,
 }
 
 impl Error {
-    pub fn buffer_too_small(need: usize, available: usize) -> Error {
-        Error::BufferTooSmall(BufferSize::Need(need), BufferSize::Available(available))
+    pub fn buffer_too_small(need: usize, have: usize) -> Error {
+        Error::BufferTooSmall(need, have)
+    }
+}
+
+impl fmt::Display for Error {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            Error::BufferTooSmall(need, have) => {
+                writeln!(f, "The buffer size is too small. Got: {} bytes; Need: {} bytes.", need, have)
+            }
+            Error::EncodingError => {
+                writeln!(f, "An error occurred in serialization.")
+            },
+            Error::DecodingError => {
+                writeln!(f, "An error occurred in deserialization.")
+            }
+        }
+    }
+}
+
+impl error::Error for Error {
+    fn description(&self) -> &str {
+        match *self {
+            Error::BufferTooSmall(_, _) => "The buffer size is too small to write into.",
+            Error::EncodingError => "An error occurred in serialization.",
+            Error::DecodingError => "An error occurred in deserialization."
+        }
+    }
+
+    fn cause(&self) -> Option<&error::Error> {
+        None
     }
 }
 

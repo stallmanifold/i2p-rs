@@ -222,7 +222,7 @@ impl serialize::Deserialize for I2pString {
             let i2p_string = match I2pString::from_vec(data) {
                 Ok(string) => string,
                 Err(_) => {
-                    return Err(serialize::Error::DecodingError(String::from("Invalid UTF8 data.")));
+                    return Err(serialize::Error::DecodingError);
                 }
             };
 
