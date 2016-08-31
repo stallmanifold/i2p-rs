@@ -179,4 +179,11 @@ mod tests {
         // This test fails if no panic occurs.
         assert!(false);
     }
+
+    #[test]
+    fn test_constructor_should_reject_zero_millisecond_input() {
+        let i2p_date = I2pDate::checked_new(I2pInt64::new(0));
+
+        assert!(i2p_date.is_err());
+    }
 }

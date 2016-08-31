@@ -68,6 +68,10 @@ impl I2pString {
         self.length
     }
 
+    pub fn is_empty(&self) -> bool {
+        self.length == 0
+    }
+
     /// Returns the maximum number of characters a string can store.
     pub fn capacity(&self) -> usize {
         I2P_MAX_STRING_LENGTH
@@ -219,14 +223,17 @@ impl rand::Rand for I2pString {
 
 impl serialize::Serialize for I2pString {
     fn serialize(&self, buf: &mut [u8]) -> serialize::Result<usize> {
-        // If the data fits inside the buffer, write to it.
+        // If the data fits inside the buffer, write to it. It is necessary that
+        // the string length be strictly less than the buffer length so that the length
+        // byte can be written in.
         if self.len() < buf.len() {
             let str_data = self.as_bytes();
             buf[0] = self.len() as u8;
-            for i in 1..self.len()+1 {
-                buf[i] = str_data[i];
+            for (i, byte) in self.data.bytes().enumerate() {
+                // Place the data ahead of the length byte.
+                buf[i + 1] = byte;
             }
-            Ok(self.len())
+            Ok(self.len() + 1)
         } else {
             Err(serialize::Error::buffer_too_small(self.len()+1, buf.len()))
         }
@@ -334,5 +341,13 @@ mod tests {
         // Generate a maximum length i2p_string.
         let result = i2p_string.push('A');
         assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_empty_string_should_contain_no_data() {
+        let i2p_string = <I2pString as Default>::default();
+
+        assert!(i2p_string.is_empty());
+        assert!(i2p_string.as_str().is_empty());
     }
 }
