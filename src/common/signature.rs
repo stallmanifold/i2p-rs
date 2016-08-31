@@ -6,7 +6,7 @@ use serialize;
 
 
 /// Describes the key type contained in the key certificate. As of I2P Router
-/// version 0.9.12, the default type is DSA_SHA1, with other types being supported.
+/// version 0.9.12, the default type is `DSA_SHA1`, with other types being supported.
 #[allow(non_camel_case_types)]
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum SignatureType {
@@ -94,7 +94,7 @@ macro_rules! data_structure_impl {
 
             fn from_bytes(sigtype: SignatureType, bytes: &[u8]) -> Option<$TYPE_NAME> {
                 if Self::signing_length(sigtype) == bytes.len() {
-                    let data: Vec<u8> = bytes.iter().map(|c: &u8| *c).collect();
+                    let data: Vec<u8> = bytes.iter().cloned().collect();
 
                     let key = $TYPE_NAME {
                         sigtype: sigtype,
@@ -185,8 +185,8 @@ macro_rules! data_structure_serialize_impl {
             fn serialize(&self, buf: &mut [u8]) -> serialize::Result<usize> {
                 if (self.len() <= buf.len()) && !self.sigtype.has_little_endian_repr() {
                     let bytes = self.as_ref();
-                    for i in 0..self.len() {
-                        buf[i] = bytes[i];
+                    for (i, byte) in bytes.iter().enumerate() {
+                        buf[i] = *byte;
                     }
 
                     Ok(self.len())
@@ -195,8 +195,8 @@ macro_rules! data_structure_serialize_impl {
                     let bytes = self.as_ref();
                     let length = self.len();
                     // Write the data to the buffer in reverse.
-                    for i in 0..length {
-                        buf[(length-1) - i] = bytes[i];
+                    for (i, byte) in bytes.iter().enumerate() {
+                        buf[(length-1) - i] = *byte;
                     }
 
                     Ok(length)

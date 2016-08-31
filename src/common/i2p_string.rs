@@ -9,8 +9,8 @@ pub const I2P_MAX_STRING_LENGTH: usize = 255;
 
 /// The `I2pString` type represents a UTF-8 encoded string.
 /// An `I2pString` has length at most 255 bytes. It may have a length of 0.
-/// The length of an I2pString includes the leading byte describing the length of the string.
-#[derive(Clone, PartialEq, Eq, Debug)]
+/// The length of an `I2pString` includes the leading byte describing the length of the string.
+#[derive(Clone, PartialEq, Eq, Debug, Default)]
 pub struct I2pString {
     length: usize,
     data: String
@@ -215,14 +215,14 @@ impl serialize::Deserialize for I2pString {
         if buf.len() > nbytes {
             let mut data: Vec<u8> = Vec::with_capacity(I2P_MAX_STRING_LENGTH);
             // The string data follows the first byte.
-            for i in 1..nbytes+1 {
-                data.push(buf[i]);
+            for byte in buf.iter().take(nbytes+1).skip(1) {
+                data.push(*byte);
             }
 
             let i2p_string = match I2pString::from_vec(data) {
                 Ok(string) => string,
                 Err(_) => {
-                    return Err(serialize::Error::DecodingError);
+                    return Err(serialize::Error::Decoding);
                 }
             };
 

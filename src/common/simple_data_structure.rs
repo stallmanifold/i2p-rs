@@ -2,7 +2,7 @@
 /// are composed of fixed-length arrays.
 macro_rules! simple_data_structure {
     ($TYPE_NAME:ident, $ARRAY_LENGTH:expr) => {
-        #[derive(Copy, Eq)]
+        #[derive(Eq)]
         pub struct $TYPE_NAME {
             data: [u8; $ARRAY_LENGTH]
         }
@@ -23,9 +23,11 @@ macro_rules! simple_data_structure {
                 if bytes.len() <= $ARRAY_LENGTH {
                     let mut key_bytes = [0x00; $ARRAY_LENGTH];
                     let offset = $ARRAY_LENGTH - bytes.len();
-                    for i in 0..bytes.len() {
-                        key_bytes[i + offset] = bytes[i];
+
+                    for (i, byte) in bytes.iter().enumerate() {
+                        key_bytes[i + offset] = *byte;
                     }
+
                     Some($TYPE_NAME::new(key_bytes))
                 } else {
                     None
@@ -46,8 +48,8 @@ macro_rules! simple_data_structure {
         impl Clone for $TYPE_NAME {
             fn clone(&self) -> $TYPE_NAME {
                 let mut cloned_hash = [0x00; $ARRAY_LENGTH];
-                for i in 0..self.len() {
-                    cloned_hash[i] = self.data[i];
+                for (i, byte) in self.data.iter().enumerate() {
+                    cloned_hash[i] = *byte;
                 }
 
                 $TYPE_NAME::new(cloned_hash)
@@ -148,8 +150,8 @@ macro_rules! simple_data_structure_serialize_impl {
             fn serialize(&self, buf: &mut [u8]) -> serialize::Result<usize> {
                 // If the data fits inside the buffer, write to it.
                 if self.len() <= buf.len() {
-                    for i in 0..self.len() {
-                        buf[i] = self.data[i];
+                    for (i, byte) in self.data.iter().enumerate() {
+                        buf[i] = *byte;
                     }
                     Ok(self.len())
                 } else {

@@ -110,7 +110,7 @@ impl<I> I2pInteger<I> where I: I2pIntSize + I2pIntMask {
 
         for byte in bytes {
             result <<= 8;
-            result = result | (*byte as u64);
+            result |= *byte as u64;
         }
 
         if byteorder::is_big_endian() {
@@ -130,7 +130,7 @@ impl<I> I2pInteger<I> where I: I2pIntSize + I2pIntMask {
 
         // Truncate the leading zero bytes.
         let leading_byte_count = I2P_INTEGER_MAX_SIZE_BYTES - I::len();
-        data = data >> (8 * leading_byte_count);
+        data >>= 8 * leading_byte_count;
         // Push out the remaining bytes onto the byte array.
         for _ in 0..I::len() {
             let byte = (data & mask) as u8;
@@ -191,9 +191,9 @@ impl<I> serialize::Deserialize for I2pInteger<I> where I: I2pIntSize + I2pIntMas
             let mask = <I as I2pIntMask>::mask();
             let mut result: u64 = 0x00;
 
-            for i in 0..I::len() {
+            for byte in buf.iter().take(I::len()) {
                 result <<= 8;
-                result = result | (buf[i] as u64);
+                result |= *byte as u64;
             }
 
             if byteorder::is_big_endian() {
@@ -603,49 +603,49 @@ shift_right_impl!(isize);
 
 impl<I> AddAssign<I2pInteger<I>> for I2pInteger<I>  where I: I2pIntSize + I2pIntMask {
     fn add_assign(&mut self, other: I2pInteger<I>) {
-        *self = self.clone() + other;
+        *self = *self + other;
     }
 }
 
 impl<I> SubAssign<I2pInteger<I>> for I2pInteger<I>  where I: I2pIntSize + I2pIntMask {
     fn sub_assign(&mut self, other: I2pInteger<I>) {
-        *self = self.clone() - other;
+        *self = *self - other;
     }
 }
 
 impl<I> MulAssign<I2pInteger<I>> for I2pInteger<I>  where I: I2pIntSize + I2pIntMask {
     fn mul_assign(&mut self, other: I2pInteger<I>) {
-        *self = self.clone() * other;
+        *self = *self * other;
     }
 }
 
 impl<I> DivAssign<I2pInteger<I>> for I2pInteger<I>  where I: I2pIntSize + I2pIntMask {
     fn div_assign(&mut self, other: I2pInteger<I>) {
-        *self = self.clone() % other;
+        *self = *self % other;
     }
 }
 
 impl<I> RemAssign<I2pInteger<I>> for I2pInteger<I>  where I: I2pIntSize + I2pIntMask {
     fn rem_assign(&mut self, other: I2pInteger<I>) {
-        *self = self.clone() % other;
+        *self = *self % other;
     }
 }
 
 impl<I> BitAndAssign<I2pInteger<I>> for I2pInteger<I>  where I: I2pIntSize + I2pIntMask {
     fn bitand_assign(&mut self, other: I2pInteger<I>) {
-        *self = self.clone() & other;
+        *self = *self & other;
     }
 }
 
 impl<I> BitOrAssign<I2pInteger<I>> for I2pInteger<I>  where I: I2pIntSize + I2pIntMask {
     fn bitor_assign(&mut self, other: I2pInteger<I>) {
-        *self = self.clone() | other;
+        *self = *self | other;
     }
 }
 
 impl<I> BitXorAssign<I2pInteger<I>> for I2pInteger<I>  where I: I2pIntSize + I2pIntMask {
     fn bitxor_assign(&mut self, other: I2pInteger<I>) {
-        *self = self.clone() ^ other;
+        *self = *self ^ other;
     }
 }
 

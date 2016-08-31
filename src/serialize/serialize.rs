@@ -8,8 +8,8 @@ pub enum Error {
     // The buffer is too small. The first field is the needed number of bytes in the buffer,
     // the second field is the available amount of bytes in the buffer.
     BufferTooSmall(usize, usize),
-    EncodingError,
-    DecodingError,
+    Encoding,
+    Decoding,
 }
 
 impl Error {
@@ -24,10 +24,10 @@ impl fmt::Display for Error {
             Error::BufferTooSmall(need, have) => {
                 writeln!(f, "The buffer size is too small. Got: {} bytes; Need: {} bytes.", need, have)
             }
-            Error::EncodingError => {
+            Error::Encoding => {
                 writeln!(f, "An error occurred in serialization.")
             },
-            Error::DecodingError => {
+            Error::Decoding => {
                 writeln!(f, "An error occurred in deserialization.")
             }
         }
@@ -38,8 +38,8 @@ impl error::Error for Error {
     fn description(&self) -> &str {
         match *self {
             Error::BufferTooSmall(_, _) => "The buffer size is too small to write into.",
-            Error::EncodingError => "An error occurred in serialization.",
-            Error::DecodingError => "An error occurred in deserialization."
+            Error::Encoding => "An error occurred in serialization.",
+            Error::Decoding => "An error occurred in deserialization."
         }
     }
 
