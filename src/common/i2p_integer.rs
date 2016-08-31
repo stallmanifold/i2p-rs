@@ -120,12 +120,15 @@ impl<I> I2pInteger<I> where I: I2pIntSize + I2pIntMask {
         Some(I2pInteger::new(result & mask))
     }
 
+    /// Returns a big endian byte representation of an
+    /// I2P integer. The length of the vector is the length
+    /// of its representation according to the I2p specification.
     pub fn to_bytes_be(&self) -> Vec<u8> {
         let mut bytes = Vec::new();
         let mut data  = self.data.to_be();
         let mask = 0xFF;
 
-        while data > 0 {
+        for _ in 0..I::len() {
             let byte = (data & mask) as u8;
             data >>= 8;
             bytes.push(byte);

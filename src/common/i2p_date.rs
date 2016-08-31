@@ -44,6 +44,14 @@ impl I2pDate {
         }
     }
 
+    pub fn len(&self) -> usize {
+        I2P_DATE_LENGTH_BYTES
+    }
+
+    pub fn to_bytes_be(&self) -> Vec<u8> {
+        self.milliseconds.to_bytes_be()
+    }
+
     pub fn to_rfc3339(&self) -> String {
         let datetime: DateTime<utc::UTC> = self.to_datetime();
 
@@ -86,15 +94,16 @@ impl rand::Rand for I2pDate {
     fn rand<R: rand::Rng>(rng: &mut R) -> Self {
         let random_date = I2pInt64::new(rng.next_u64());
 
-        I2pDate::new(random_date)
+        I2pDate::new(random_date + I2pInt64::new(1))
     }
 }
 
 impl serialize::Serialize for I2pDate {
     fn serialize(&self, buf: &mut [u8]) -> serialize::Result<usize> {
         if buf.len() >= I2P_DATE_LENGTH_BYTES {
-            let bytes = self.milliseconds.to_bytes_be();
+            let bytes = self.to_bytes_be();
             let byte_slice: &[u8] = bytes.as_ref();
+            assert_eq!(byte_slice.len(), 8);
             for i in 0..buf.len() {
                 buf[i] = byte_slice[i];
             }

@@ -1,11 +1,12 @@
 use std::result;
 
-
+#[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub enum BufferSize {
     Need(usize),
     Available(usize)
 }
 
+#[derive(Clone, Eq, PartialEq, Debug)]
 pub enum Error {
     // The buffer is too small. The first field is the needed number of bytes in the buffer,
     // the second field is the available amount of bytes in the buffer.
