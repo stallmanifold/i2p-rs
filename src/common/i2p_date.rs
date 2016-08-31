@@ -1,3 +1,4 @@
+use std::error;
 use common::i2p_integer::I2pInt64;
 use chrono::datetime::DateTime;
 use chrono::naive::datetime::NaiveDateTime;
@@ -9,6 +10,36 @@ use serialize;
 
 
 const I2P_DATE_LENGTH_BYTES: usize = 8;
+
+#[derive(Copy, Clone, Debug)]
+pub enum I2pDateError {
+    GotZeroMilliseconds
+}
+
+impl fmt::Display for I2pDateError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            I2pDateError::GotZeroMilliseconds => {
+                writeln!(f, "Error: Got a value of zero milliseconds for a date.")
+            }
+        }
+    }
+}
+
+impl error::Error for I2pDateError {
+    fn description(&self) -> &str {
+        match *self {
+            I2pDateError::GotZeroMilliseconds => {
+                "The I2P specification forbids the passing of zero milliseconds for a date."
+            }
+        }
+    }
+
+    fn cause(&self) -> Option<&error::Error> {
+        None
+    }
+}
+
 /// The `Date` type counts the number of milliseconds since January 1, 1970 (UNIX time)
 /// in the GMT timezone. If the number is 0, the date is undefined or null.
 ///
@@ -32,15 +63,15 @@ impl I2pDate {
     }
 
     /// Creates a new I2pDate without panicing when milliseconds is zero.
-    pub fn checked_new(milliseconds: I2pInt64) -> Option<I2pDate> {
+    pub fn checked_new(milliseconds: I2pInt64) -> Result<I2pDate, I2pDateError> {
         if milliseconds > I2pInt64::from(0) {
             let i2p_date = I2pDate {
                 milliseconds: milliseconds
             };
 
-            Some(i2p_date)
+            Ok(i2p_date)
         } else {
-            None
+            Err(I2pDateError::GotZeroMilliseconds)
         }
     }
 
@@ -122,11 +153,11 @@ impl serialize::Deserialize for I2pDate {
     fn deserialize(buf: &[u8]) -> serialize::Result<I2pDate> {
         let i2p_integer = match <I2pInt64 as serialize::Deserialize>::deserialize(buf) {
             Ok(integer) => integer,
-            Err(e) => return Err(serialize::Error::Decoding)
+            Err(err) => return Err(serialize::Error::Decoding(Box::new(err)))
         };
         let i2p_date = match I2pDate::checked_new(i2p_integer) {
-            Some(date) => date,
-            None => return Err(serialize::Error::Decoding)
+            Ok(date) => date,
+            Err(err) => return Err(serialize::Error::Decoding(Box::new(err)))
         };
 
         Ok(i2p_date)

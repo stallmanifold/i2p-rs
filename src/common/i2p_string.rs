@@ -1,4 +1,5 @@
 use std::convert::From;
+use std::error;
 use std::str;
 use std::fmt;
 use serialize;
@@ -7,6 +8,42 @@ use rand;
 
 pub const I2P_MAX_STRING_LENGTH: usize = 255;
 
+#[derive(Copy, Clone, PartialEq, Eq, Debug)]
+pub enum I2pStringError {
+    NotEnoughCapacity(usize, usize),
+    InvalidUtf8,
+}
+
+impl fmt::Display for I2pStringError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            I2pStringError::NotEnoughCapacity(need, have) => {
+                writeln!(f, "Not enough space in string. Need: {}; Have: {}.", need, have)
+            }
+            I2pStringError::InvalidUtf8 => {
+                writeln!(f, "String is not a valid UTF-8 string.")
+            }
+        }
+    }
+}
+
+impl error::Error for I2pStringError {
+    fn description(&self) -> &str {
+        match *self {
+            I2pStringError::NotEnoughCapacity(_, _) => {
+                "This error is returned when there is not enough room in an I2pString to fit the data."
+            }
+            I2pStringError::InvalidUtf8 => {
+                "The input string is not a valid UTF-8 string."
+            }
+        }
+    }
+
+    fn cause(&self) -> Option<&error::Error> {
+        None
+    }
+}
+
 /// The `I2pString` type represents a UTF-8 encoded string.
 /// An `I2pString` has length at most 255 bytes. It may have a length of 0.
 /// The length of an `I2pString` includes the leading byte describing the length of the string.
@@ -14,12 +51,6 @@ pub const I2P_MAX_STRING_LENGTH: usize = 255;
 pub struct I2pString {
     length: usize,
     data: String
-}
-
-#[derive(Copy, Clone, PartialEq, Eq, Debug)]
-pub enum I2pStringError {
-    NotEnoughCapacity(usize, usize),
-    InvalidUtf8,
 }
 
 impl I2pString {
@@ -221,8 +252,8 @@ impl serialize::Deserialize for I2pString {
 
             let i2p_string = match I2pString::from_vec(data) {
                 Ok(string) => string,
-                Err(_) => {
-                    return Err(serialize::Error::Decoding);
+                Err(err) => {
+                    return Err(serialize::Error::Decoding(Box::new(err)));
                 }
             };
 
