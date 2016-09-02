@@ -49,21 +49,8 @@ pub struct I2pDate {
 }
 
 impl I2pDate {
-    /// Creates a new I2pDate.
-    /// # Panics
-    /// When milliseconds is zero.
-    pub fn new(milliseconds: I2pInt64) -> I2pDate {
-        if milliseconds > I2pInt64::from(0) {
-            I2pDate {
-                milliseconds: milliseconds
-            }
-        } else {
-            panic!("Got a zero value for milliseconds.");
-        }
-    }
-
-    /// Creates a new I2pDate without panicing when milliseconds is zero.
-    pub fn checked_new(milliseconds: I2pInt64) -> Result<I2pDate, I2pDateError> {
+    /// Creates a new `I2pDate`. Returns an error when milliseconds is zero.
+    pub fn new(milliseconds: I2pInt64) -> Result<I2pDate, I2pDateError> {
         if milliseconds > I2pInt64::from(0) {
             let i2p_date = I2pDate {
                 milliseconds: milliseconds
@@ -72,6 +59,13 @@ impl I2pDate {
             Ok(i2p_date)
         } else {
             Err(I2pDateError::GotZeroMilliseconds)
+        }
+    }
+
+    /// Creates a new `I2pDate`.
+    fn new_unchecked(milliseconds: I2pInt64) -> I2pDate {
+        I2pDate {
+            milliseconds: milliseconds
         }
     }
 
@@ -101,11 +95,11 @@ impl I2pDate {
     }
 
     pub fn min_value() -> I2pDate {
-        I2pDate::new(I2pInt64::new(1))
+        I2pDate::new_unchecked(I2pInt64::new(1))
     }
 
     pub fn max_value() -> I2pDate {
-        I2pDate::new(I2pInt64::new(u64::max_value()))
+        I2pDate::new_unchecked(I2pInt64::new(u64::max_value()))
     }
 }
 
@@ -125,7 +119,8 @@ impl rand::Rand for I2pDate {
     fn rand<R: rand::Rng>(rng: &mut R) -> Self {
         let random_date = I2pInt64::new(rng.next_u64());
 
-        I2pDate::new(random_date + I2pInt64::new(1))
+        // Add one in case the RNG generates a zero value.
+        I2pDate::new_unchecked(random_date + I2pInt64::new(1))
     }
 }
 
@@ -155,7 +150,7 @@ impl serialize::Deserialize for I2pDate {
             Ok(integer) => integer,
             Err(err) => return Err(serialize::Error::Decoding(Box::new(err)))
         };
-        let i2p_date = match I2pDate::checked_new(i2p_integer) {
+        let i2p_date = match I2pDate::new(i2p_integer) {
             Ok(date) => date,
             Err(err) => return Err(serialize::Error::Decoding(Box::new(err)))
         };
@@ -172,17 +167,8 @@ mod tests {
 
 
     #[test]
-    #[should_panic]
-    fn test_constructor_should_panic_when_milliseconds_is_zero() {
-        I2pDate::new(I2pInt64::new(0));
-
-        // This test fails if no panic occurs.
-        assert!(false);
-    }
-
-    #[test]
     fn test_constructor_should_reject_zero_millisecond_input() {
-        let i2p_date = I2pDate::checked_new(I2pInt64::new(0));
+        let i2p_date = I2pDate::new(I2pInt64::new(0));
 
         assert!(i2p_date.is_err());
     }
